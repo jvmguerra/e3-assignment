@@ -175,14 +175,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* Desktop sidebar */}
-      <aside className="hidden w-60 shrink-0 border-r bg-card md:flex md:flex-col">
+    <div className="flex h-screen overflow-hidden">
+      {/* Desktop sidebar — fixed height, only nav section scrolls */}
+      <aside className="hidden w-60 shrink-0 border-r bg-card md:flex md:flex-col h-screen">
         <SidebarContent pathname={pathname} onLogout={handleLogout} />
       </aside>
 
       {/* Mobile header + sheet */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col min-h-0">
         <header className="flex h-12 items-center gap-3 border-b bg-card px-4 md:hidden">
           <Sheet>
             <SheetTrigger
@@ -200,8 +200,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="text-sm font-semibold">Team Notes</span>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        {/* Page content — scrollable independently from sidebar */}
+        <main className="flex-1 overflow-y-auto min-h-0">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>

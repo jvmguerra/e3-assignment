@@ -48,6 +48,12 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Force font inheritance on form elements — browsers use system UI font by default
+   for buttons, inputs, selects, and textareas, which breaks our custom font stack. */
+button, input, select, textarea, [role="button"] {
+  font-family: inherit;
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
