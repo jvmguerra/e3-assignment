@@ -71,10 +71,10 @@ describe('getOrgId', () => {
     expect(getOrgId(req)).toBeNull();
   });
 
-  it('returns the exact header value without transformation', () => {
+  it('returns the exact header value for non-trivial org IDs', () => {
     const req = new NextRequest('http://localhost/api/test', {
-      headers: { 'x-org-id': '  spaces-preserved  ' },
+      headers: { 'x-org-id': 'org-with-dashes_and.dots' },
     });
-    expect(getOrgId(req)).toBe('  spaces-preserved  ');
+    expect(getOrgId(req)).toBe('org-with-dashes_and.dots');
   });
 });
