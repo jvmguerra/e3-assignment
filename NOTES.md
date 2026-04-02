@@ -42,4 +42,11 @@ A running scratchpad of plans, actions, decisions, and reasoning throughout the 
 **Plan:** Three parallel agents — Agent A: Search + AI summary backend (OpenRouter, Zod validation, rate limiting). Agent B: File upload/download backend (Supabase Storage, signed URLs). Agent C: Search page, files page, AI summary component, file attachments UI.
 **Reasoning:** Search, files, and AI are independent backend domains that can all be built simultaneously. Single frontend agent wires up all three UIs.
 **Result:** Complete AI integration with OpenRouter (MiniMax-M2.7), Zod schema validation for structured output, rate limiting via audit_logs count, accept/reject with tag merging. File upload/download with Supabase Storage (signed URLs, admin client for storage ops, user client for DB with RLS). Search page with debounced input, files page with upload/download/delete, AI summary cards with generate/accept/reject.
-**Issues:** None so far — pending human review.
+**Issues:** Fixed: search results key mismatch (.results not .notes), file download URL key (.download_url), AI summary array parsing precedence bug, MIME type display, search infinite re-fetch (headers object ref in dep array), tags not updating after summary accept.
+
+## 2026-04-02 01:15 — Phase 4: Logging + Polish + Error Handling
+
+**Plan:** Two parallel agents — Agent A: Audit all route handlers for logging, add audit logs API. Agent B: Audit log viewer UI, error boundary, loading/empty states, responsive polish.
+**Reasoning:** All features exist — now need operational visibility and production-ready UX.
+**Result:** Audited all 22+ route handlers — confirmed logging on every mutation, auth event, AI request, and permission denial. Added structured console.error for Railway. Built audit logs API (filterable by action, user, date range, admin/owner only). Built full audit log viewer with color-coded action badges, filters, pagination. Added React ErrorBoundary wrapping dashboard content. Normalized audit action names to canonical format.
+**Issues:** None.
