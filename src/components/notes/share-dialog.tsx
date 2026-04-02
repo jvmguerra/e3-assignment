@@ -11,7 +11,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Command,
@@ -120,10 +119,11 @@ export function ShareDialog({ noteId, children }: ShareDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<button type="button" className="contents" />}>
+    <>
+      <div onClick={() => setOpen(true)} className="contents">
         {children}
-      </DialogTrigger>
+      </div>
+      <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Share Note</DialogTitle>
@@ -252,5 +252,6 @@ export function ShareDialog({ noteId, children }: ShareDialogProps) {
         <DialogFooter showCloseButton />
       </DialogContent>
     </Dialog>
+    </>
   );
 }

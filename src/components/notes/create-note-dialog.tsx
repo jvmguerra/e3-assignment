@@ -10,7 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,10 +92,11 @@ export function CreateNoteDialog({ children }: CreateNoteDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<button type="button" className="contents" />}>
+    <>
+      <div onClick={() => setOpen(true)} className="contents">
         {children}
-      </DialogTrigger>
+      </div>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -158,5 +158,6 @@ export function CreateNoteDialog({ children }: CreateNoteDialogProps) {
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
