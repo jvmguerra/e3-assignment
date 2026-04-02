@@ -103,6 +103,34 @@ export function FileAttachments({ noteId }: FileAttachmentsProps) {
 
   const files: FileRecord[] = data?.files ?? [];
 
+  const [previews, setPreviews] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    if (!files.length || !activeOrgId) return;
+
+    const imageFiles = files.filter((f) => f.mime_type.startsWith("image/"));
+    if (!imageFiles.length) return;
+
+    async function loadPreviews() {
+      const newPreviews: Record<string, string> = {};
+      for (const file of imageFiles) {
+        try {
+          const fileData = await apiFetch(`/api/files/${file.id}`, {
+            headers: { "x-org-id": activeOrgId! },
+          });
+          if (fileData.download_url) {
+            newPreviews[file.id] = fileData.download_url;
+          }
+        } catch {
+          /* ignore preview failures */
+        }
+      }
+      setPreviews((prev) => ({ ...prev, ...newPreviews }));
+    }
+
+    loadPreviews();
+  }, [files, activeOrgId]);
+
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -243,7 +271,15 @@ export function FileAttachments({ noteId }: FileAttachmentsProps) {
               className="flex items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2 text-sm"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+                {previews[file.id] ? (
+                  <img
+                    src={previews[file.id]}
+                    alt={file.file_name}
+                    className="size-10 rounded object-cover border shrink-0"
+                  />
+                ) : (
+                  <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+                )}
                 <div className="flex flex-col min-w-0">
                   <span className="truncate font-medium leading-snug">
                     {file.file_name}
