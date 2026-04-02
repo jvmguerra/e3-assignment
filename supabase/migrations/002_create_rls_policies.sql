@@ -24,6 +24,25 @@ RETURNS boolean AS $$
   );
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
+-- Checks if a user can access a note's org (bypasses notes RLS to avoid recursion
+-- through note_shares → notes → note_shares).
+CREATE OR REPLACE FUNCTION user_can_access_note_org(p_user_id uuid, p_note_id uuid)
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM notes n
+    JOIN org_memberships om ON om.org_id = n.org_id AND om.user_id = p_user_id
+    WHERE n.id = p_note_id
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+-- Checks if a user has a share record on a note (bypasses note_shares RLS).
+CREATE OR REPLACE FUNCTION user_is_shared_on_note(p_user_id uuid, p_note_id uuid)
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM note_shares WHERE note_id = p_note_id AND user_id = p_user_id
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
 -- Inserts an audit log entry. Users have no INSERT policy on audit_logs;
 -- all application code calls this function instead.
 CREATE OR REPLACE FUNCTION insert_audit_log(
@@ -95,9 +114,7 @@ CREATE POLICY notes_select ON notes FOR SELECT TO authenticated
       user_has_org_role(auth.uid(), org_id, ARRAY['owner','admin'])
       OR created_by = auth.uid()
       OR visibility = 'public'
-      OR (visibility = 'shared' AND EXISTS (
-        SELECT 1 FROM note_shares WHERE note_id = notes.id AND user_id = auth.uid()
-      ))
+      OR (visibility = 'shared' AND user_is_shared_on_note(auth.uid(), id))
     )
   );
 
@@ -128,19 +145,7 @@ CREATE POLICY notes_delete ON notes FOR DELETE TO authenticated
 -- ============================================================
 
 CREATE POLICY note_versions_select ON note_versions FOR SELECT TO authenticated
-  USING (EXISTS (
-    SELECT 1 FROM notes
-    WHERE notes.id = note_versions.note_id
-      AND notes.org_id IN (SELECT get_user_org_ids(auth.uid()))
-      AND (
-        user_has_org_role(auth.uid(), notes.org_id, ARRAY['owner','admin'])
-        OR notes.created_by = auth.uid()
-        OR notes.visibility = 'public'
-        OR (notes.visibility = 'shared' AND EXISTS (
-          SELECT 1 FROM note_shares WHERE note_id = notes.id AND user_id = auth.uid()
-        ))
-      )
-  ));
+  USING (user_can_access_note_org(auth.uid(), note_id));
 
 CREATE POLICY note_versions_insert ON note_versions FOR INSERT TO authenticated
   WITH CHECK (EXISTS (
@@ -153,10 +158,7 @@ CREATE POLICY note_versions_insert ON note_versions FOR INSERT TO authenticated
 -- ============================================================
 
 CREATE POLICY note_shares_select ON note_shares FOR SELECT TO authenticated
-  USING (EXISTS (
-    SELECT 1 FROM notes WHERE notes.id = note_shares.note_id
-      AND notes.org_id IN (SELECT get_user_org_ids(auth.uid()))
-  ));
+  USING (user_can_access_note_org(auth.uid(), note_id));
 
 CREATE POLICY note_shares_insert ON note_shares FOR INSERT TO authenticated
   WITH CHECK (EXISTS (
@@ -191,18 +193,7 @@ CREATE POLICY files_delete ON files FOR DELETE TO authenticated
 -- ============================================================
 
 CREATE POLICY ai_summaries_select ON ai_summaries FOR SELECT TO authenticated
-  USING (EXISTS (
-    SELECT 1 FROM notes WHERE notes.id = ai_summaries.note_id
-      AND notes.org_id IN (SELECT get_user_org_ids(auth.uid()))
-      AND (
-        user_has_org_role(auth.uid(), notes.org_id, ARRAY['owner','admin'])
-        OR notes.created_by = auth.uid()
-        OR notes.visibility = 'public'
-        OR (notes.visibility = 'shared' AND EXISTS (
-          SELECT 1 FROM note_shares WHERE note_id = notes.id AND user_id = auth.uid()
-        ))
-      )
-  ));
+  USING (user_can_access_note_org(auth.uid(), note_id));
 
 CREATE POLICY ai_summaries_insert ON ai_summaries FOR INSERT TO authenticated
   WITH CHECK (EXISTS (

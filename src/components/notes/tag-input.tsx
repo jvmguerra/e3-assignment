@@ -4,15 +4,7 @@ import * as React from "react";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { useApiHeaders, apiFetch } from "@/hooks/use-api";
+import { apiFetch } from "@/hooks/use-api";
 import { useOrgStore } from "@/stores/org-store";
 
 interface TagInputProps {
@@ -24,16 +16,17 @@ interface TagInputProps {
 export function TagInput({ tags, onChange, placeholder = "Add tag..." }: TagInputProps) {
   const [inputValue, setInputValue] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
-  const [open, setOpen] = React.useState(false);
-  const headers = useApiHeaders();
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const activeOrgId = useOrgStore((s) => s.activeOrgId);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Fetch autocomplete suggestions
   React.useEffect(() => {
     if (!inputValue.trim() || !activeOrgId) {
       setSuggestions([]);
-      setOpen(false);
+      setShowSuggestions(false);
       return;
     }
 
@@ -42,13 +35,17 @@ export function TagInput({ tags, onChange, placeholder = "Add tag..." }: TagInpu
       try {
         const data = await apiFetch(
           `/api/notes/tags?q=${encodeURIComponent(inputValue.trim())}`,
-          { headers, signal: controller.signal }
+          {
+            headers: { "x-org-id": activeOrgId },
+            signal: controller.signal,
+          }
         );
         const filtered = (data.tags as string[]).filter((t) => !tags.includes(t));
         setSuggestions(filtered);
-        setOpen(filtered.length > 0);
+        setShowSuggestions(filtered.length > 0);
+        setSelectedIndex(-1);
       } catch {
-        // ignore aborted fetches or errors
+        // ignore
       }
     }, 200);
 
@@ -56,19 +53,30 @@ export function TagInput({ tags, onChange, placeholder = "Add tag..." }: TagInpu
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [inputValue, activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [inputValue, activeOrgId, tags]);
+
+  // Close suggestions on outside click
+  React.useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   function addTag(value: string) {
     const trimmed = value.trim().toLowerCase().replace(/,+$/, "");
     if (!trimmed || tags.includes(trimmed)) {
       setInputValue("");
-      setOpen(false);
+      setShowSuggestions(false);
       return;
     }
     onChange([...tags, trimmed]);
     setInputValue("");
     setSuggestions([]);
-    setOpen(false);
+    setShowSuggestions(false);
     inputRef.current?.focus();
   }
 
@@ -79,14 +87,26 @@ export function TagInput({ tags, onChange, placeholder = "Add tag..." }: TagInpu
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
-      addTag(inputValue);
+      if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+        addTag(suggestions[selectedIndex]);
+      } else {
+        addTag(inputValue);
+      }
     } else if (e.key === "Backspace" && !inputValue && tags.length > 0) {
       removeTag(tags[tags.length - 1]);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((i) => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex((i) => Math.max(i - 1, -1));
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
     }
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" ref={containerRef}>
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {tags.map((tag) => (
@@ -105,48 +125,38 @@ export function TagInput({ tags, onChange, placeholder = "Add tag..." }: TagInpu
         </div>
       )}
 
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger
-          render={
-            <div className="w-full">
-              <Input
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={placeholder}
-                className="w-full"
-              />
-            </div>
-          }
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => {
+            if (suggestions.length > 0) setShowSuggestions(true);
+          }}
+          placeholder={placeholder}
+          className="w-full"
         />
-        <PopoverContent
-          className="w-64 p-0"
-          side="bottom"
-          align="start"
-          sideOffset={4}
-        >
-          <Command>
-            <CommandList>
-              {suggestions.length === 0 ? (
-                <CommandEmpty>No suggestions found.</CommandEmpty>
-              ) : (
-                <CommandGroup heading="Suggestions">
-                  {suggestions.map((tag) => (
-                    <CommandItem
-                      key={tag}
-                      value={tag}
-                      onSelect={() => addTag(tag)}
-                    >
-                      {tag}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-md border bg-popover p-1 shadow-md">
+            {suggestions.map((tag, i) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => addTag(tag)}
+                className={`w-full rounded-sm px-2 py-1.5 text-left text-sm transition-colors ${
+                  i === selectedIndex
+                    ? "bg-accent text-accent-foreground"
+                    : "hover:bg-muted"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <p className="text-xs text-muted-foreground">
         Press Enter or comma to add a tag.
