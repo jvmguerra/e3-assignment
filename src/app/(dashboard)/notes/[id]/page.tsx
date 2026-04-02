@@ -39,6 +39,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { TagInput } from "@/components/notes/tag-input";
 import { ShareDialog } from "@/components/notes/share-dialog";
+import { AISummary } from "@/components/notes/ai-summary";
+import { FileAttachments } from "@/components/notes/file-attachments";
 import { apiFetch, useApiHeaders } from "@/hooks/use-api";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrgStore } from "@/stores/org-store";
@@ -427,19 +429,11 @@ export default function NoteDetailPage() {
             </Link>
           </div>
 
-          {/* AI Summary placeholder */}
-          <div className="rounded-lg border border-dashed bg-muted/30 p-4">
-            <p className="text-sm font-medium text-muted-foreground">
-              AI Summary &mdash; coming in Phase 3
-            </p>
-          </div>
+          {/* AI Summary */}
+          <AISummary noteId={note.id} noteTitle={note.title} />
 
-          {/* File attachments placeholder */}
-          <div className="rounded-lg border border-dashed bg-muted/30 p-4">
-            <p className="text-sm font-medium text-muted-foreground">
-              File Attachments &mdash; coming in Phase 3
-            </p>
-          </div>
+          {/* File Attachments */}
+          <FileAttachments noteId={note.id} />
         </div>
 
         {/* Sidebar */}
