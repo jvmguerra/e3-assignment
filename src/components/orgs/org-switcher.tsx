@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ChevronsUpDown, PlusIcon, BuildingIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -15,7 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrgStore } from "@/stores/org-store";
-import { apiFetch, useApiHeaders } from "@/hooks/use-api";
 import type { Organization } from "@/types/index";
 import { CreateOrgDialog } from "./create-org-dialog";
 
@@ -27,16 +27,26 @@ export function OrgSwitcher() {
   const activeOrgId = useOrgStore((s) => s.activeOrgId);
   const setActiveOrgId = useOrgStore((s) => s.setActiveOrgId);
   const queryClient = useQueryClient();
-  const headers = useApiHeaders();
   const [createOpen, setCreateOpen] = useState(false);
 
   const { data, isLoading } = useQuery<OrgsResponse>({
     queryKey: ["orgs"],
-    queryFn: () => apiFetch("/api/orgs", { headers }),
+    queryFn: async () => {
+      const res = await fetch("/api/orgs");
+      if (!res.ok) throw new Error("Failed to fetch orgs");
+      return res.json();
+    },
   });
 
   const orgs = data?.orgs ?? [];
   const activeOrg = orgs.find((o) => o.id === activeOrgId) ?? orgs[0] ?? null;
+
+  // Auto-select first org if none selected
+  useEffect(() => {
+    if (!activeOrgId && activeOrg) {
+      setActiveOrgId(activeOrg.id);
+    }
+  }, [activeOrgId, activeOrg, setActiveOrgId]);
 
   function handleSwitch(org: Organization) {
     setActiveOrgId(org.id);
@@ -66,21 +76,23 @@ export function OrgSwitcher() {
           <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
-          <DropdownMenuLabel>Organizations</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {orgs.map((org) => (
-            <DropdownMenuItem
-              key={org.id}
-              onClick={() => handleSwitch(org)}
-              className={org.id === activeOrg?.id ? "bg-accent" : ""}
-            >
-              <BuildingIcon className="size-4 text-muted-foreground" />
-              <span className="truncate">{org.name}</span>
-            </DropdownMenuItem>
-          ))}
-          {orgs.length === 0 && (
-            <DropdownMenuItem disabled>No organizations</DropdownMenuItem>
-          )}
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Organizations</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {orgs.map((org) => (
+              <DropdownMenuItem
+                key={org.id}
+                onClick={() => handleSwitch(org)}
+                className={org.id === activeOrg?.id ? "bg-accent" : ""}
+              >
+                <BuildingIcon className="size-4 text-muted-foreground" />
+                <span className="truncate">{org.name}</span>
+              </DropdownMenuItem>
+            ))}
+            {orgs.length === 0 && (
+              <DropdownMenuItem disabled>No organizations</DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setCreateOpen(true)}>
             <PlusIcon className="size-4" />

@@ -158,9 +158,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="flex h-12 items-center gap-3 border-b bg-card px-4 md:hidden">
           <Sheet>
             <SheetTrigger
-              render={
-                <Button variant="ghost" size="icon-sm" aria-label="Open menu" />
-              }
+              render={<Button variant="ghost" size="icon-sm" aria-label="Open menu" />}
             >
               <MenuIcon className="size-4" />
             </SheetTrigger>
