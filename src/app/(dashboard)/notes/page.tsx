@@ -3,8 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, ChevronDownIcon, ChevronUpIcon, SearchIcon, XIcon } from "lucide-react";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -74,6 +75,8 @@ function NoteCardSkeleton() {
 export default function NotesPage() {
   const [page, setPage] = React.useState(1);
   const [activeTag, setActiveTag] = React.useState<string | null>(null);
+  const [tagsExpanded, setTagsExpanded] = React.useState(false);
+  const [tagSearch, setTagSearch] = React.useState("");
   const headers = useApiHeaders();
   const activeOrgId = useOrgStore((s) => s.activeOrgId);
 
@@ -137,34 +140,89 @@ export default function NotesPage() {
       </div>
 
       {/* Tag filters */}
-      {allTags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {allTags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => handleTagClick(tag)}
-              className="focus:outline-none"
-              type="button"
-            >
-              <Badge
-                variant={activeTag === tag ? "default" : "outline"}
-                className="cursor-pointer hover:opacity-80 transition-opacity"
-              >
-                {tag}
-              </Badge>
-            </button>
-          ))}
-          {activeTag && (
-            <button
-              type="button"
-              onClick={() => { setActiveTag(null); setPage(1); }}
-              className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
-            >
-              Clear filter
-            </button>
-          )}
-        </div>
-      )}
+      {allTags.length > 0 && (() => {
+        const filtered = tagSearch
+          ? allTags.filter((t) => t.toLowerCase().includes(tagSearch.toLowerCase()))
+          : allTags;
+        const visibleTags = tagsExpanded ? filtered : filtered.slice(0, 4);
+        const hasMore = filtered.length > 4;
+
+        return (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="flex flex-wrap gap-1.5 flex-1">
+                {/* Active tag always shown first */}
+                {activeTag && (
+                  <button
+                    key={activeTag}
+                    onClick={() => { setActiveTag(null); setPage(1); }}
+                    className="focus:outline-none"
+                    type="button"
+                  >
+                    <Badge variant="default" className="cursor-pointer gap-1">
+                      {activeTag}
+                      <XIcon className="size-3" />
+                    </Badge>
+                  </button>
+                )}
+                {visibleTags
+                  .filter((t) => t !== activeTag)
+                  .map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => handleTagClick(tag)}
+                      className="focus:outline-none"
+                      type="button"
+                    >
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer hover:opacity-80 transition-opacity"
+                      >
+                        {tag}
+                      </Badge>
+                    </button>
+                  ))}
+                {hasMore && !tagsExpanded && (
+                  <button
+                    type="button"
+                    onClick={() => setTagsExpanded(true)}
+                    className="focus:outline-none"
+                  >
+                    <Badge variant="outline" className="cursor-pointer gap-1 text-muted-foreground hover:text-foreground">
+                      +{filtered.length - 4} more
+                      <ChevronDownIcon className="size-3" />
+                    </Badge>
+                  </button>
+                )}
+                {tagsExpanded && hasMore && (
+                  <button
+                    type="button"
+                    onClick={() => { setTagsExpanded(false); setTagSearch(""); }}
+                    className="focus:outline-none"
+                  >
+                    <Badge variant="outline" className="cursor-pointer gap-1 text-muted-foreground hover:text-foreground">
+                      Show less
+                      <ChevronUpIcon className="size-3" />
+                    </Badge>
+                  </button>
+                )}
+              </div>
+            </div>
+            {/* Tag search — shown when expanded or many tags */}
+            {(tagsExpanded || allTags.length > 8) && (
+              <div className="relative w-60">
+                <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={tagSearch}
+                  onChange={(e) => setTagSearch(e.target.value)}
+                  placeholder="Search tags..."
+                  className="h-7 pl-8 text-xs"
+                />
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Error state */}
       {isError && (
