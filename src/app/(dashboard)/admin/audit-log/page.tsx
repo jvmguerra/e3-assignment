@@ -241,19 +241,6 @@ export default function AuditLogPage() {
   const myMembership = members.find((m) => m.user_id === user?.id);
   const hasAdminAccess = myMembership?.role === "owner" || myMembership?.role === "admin";
 
-  // Show access denied immediately if members loaded and user is not admin/owner
-  if (!membersLoading && members.length > 0 && !hasAdminAccess) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-        <ScrollIcon className="size-12 text-muted-foreground/40" />
-        <p className="text-lg font-medium">Access denied</p>
-        <p className="text-sm text-muted-foreground">
-          Only organization owners and admins can view the audit log.
-        </p>
-      </div>
-    );
-  }
-
   const queryParams = React.useMemo(() => {
     const params = new URLSearchParams({
       page: String(page),
@@ -318,7 +305,18 @@ export default function AuditLogPage() {
     );
   }
 
-  // Role gate already handled above — if we reach here, user is admin/owner.
+  // Role gate: show access denied for non-admin/owner (after all hooks)
+  if (members.length > 0 && !hasAdminAccess) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <ScrollIcon className="size-12 text-muted-foreground/40" />
+        <p className="text-lg font-medium">Access denied</p>
+        <p className="text-sm text-muted-foreground">
+          Only organization owners and admins can view the audit log.
+        </p>
+      </div>
+    );
+  }
 
   // Filter changes are handled inline via setState — page resets
   // are already embedded in each filter's onChange handler below.
