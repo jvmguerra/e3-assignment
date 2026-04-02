@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { apiError, apiSuccess, getAuthUser } from '@/lib/api-utils';
 import { auditLog } from '@/lib/logger';
 
@@ -69,8 +70,16 @@ export async function POST(request: NextRequest) {
       return apiError('slug may only contain lowercase letters, numbers, and hyphens', 400);
     }
 
+    // Use admin client for org creation because:
+    // 1. The INSERT policy allows it (WITH CHECK true)
+    // 2. But the chained .select() triggers the SELECT policy
+    // 3. The SELECT policy requires membership, which doesn't exist yet
+    // So we use admin to insert org + first membership atomically,
+    // then all subsequent operations use the user's client with RLS.
+    const admin = createAdminClient();
+
     // Insert the organization
-    const { data: org, error: orgError } = await supabase
+    const { data: org, error: orgError } = await admin
       .from('organizations')
       .insert({ name, slug })
       .select()
@@ -85,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert the owner membership
-    const { error: membershipError } = await supabase
+    const { error: membershipError } = await admin
       .from('org_memberships')
       .insert({
         user_id: user.id,
@@ -95,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     if (membershipError) {
       // Attempt cleanup — best effort
-      await supabase.from('organizations').delete().eq('id', org.id);
+      await admin.from('organizations').delete().eq('id', org.id);
       console.error('POST /api/orgs membership insert error:', membershipError);
       return apiError('Failed to create organization membership', 500);
     }
