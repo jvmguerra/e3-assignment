@@ -19,6 +19,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OrgSwitcher } from "@/components/orgs/org-switcher";
+import { ErrorBoundary } from "@/components/layout/error-boundary";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrgStore } from "@/stores/org-store";
 import { createClient } from "@/lib/supabase/client";
@@ -175,7 +176,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
       </div>
     </div>
   );
