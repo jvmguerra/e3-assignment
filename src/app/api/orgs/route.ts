@@ -39,7 +39,16 @@ export async function GET() {
       return apiError('Failed to fetch organizations', 500);
     }
 
-    return apiSuccess({ orgs: data });
+    // Flatten: frontend expects Organization[] with role attached
+    const orgs = (data ?? []).map((m: Record<string, unknown>) => {
+      const org = m.organization as Record<string, unknown> | null;
+      return {
+        ...org,
+        role: m.role,
+      };
+    });
+
+    return apiSuccess({ orgs });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Internal server error';
     console.error('GET /api/orgs unexpected error:', message);
