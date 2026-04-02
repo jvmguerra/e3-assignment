@@ -35,4 +35,11 @@ A running scratchpad of plans, actions, decisions, and reasoning throughout the 
 **Plan:** Two parallel agents — Agent A: Notes CRUD routes, versioning, sharing, search, tag autocomplete. Agent B: Notes list, editor, tag input, share dialog, version history, diff viewer.
 **Reasoning:** Same pattern as Phase 1 — backend routes and frontend UI built concurrently against shared type contract.
 **Result:** Complete notes backend (CRUD, versioning, sharing, search, tags) and frontend (list page with card grid, detail/editor page, tag input with autocomplete, share dialog, version history with diff viewer). All routes use withAuth wrapper and audit logging.
+**Issues:** Found and fixed: RLS circular recursion between notes↔note_shares (Bug 4), PopoverTrigger nativeButton warning (Bug 5), nested button hydration error in DialogTrigger (Bug 6), card layout inconsistency with/without tags.
+
+## 2026-04-02 00:30 — Phase 3: Search + Files + AI
+
+**Plan:** Three parallel agents — Agent A: Search + AI summary backend (OpenRouter, Zod validation, rate limiting). Agent B: File upload/download backend (Supabase Storage, signed URLs). Agent C: Search page, files page, AI summary component, file attachments UI.
+**Reasoning:** Search, files, and AI are independent backend domains that can all be built simultaneously. Single frontend agent wires up all three UIs.
+**Result:** Complete AI integration with OpenRouter (MiniMax-M2.7), Zod schema validation for structured output, rate limiting via audit_logs count, accept/reject with tag merging. File upload/download with Supabase Storage (signed URLs, admin client for storage ops, user client for DB with RLS). Search page with debounced input, files page with upload/download/delete, AI summary cards with generate/accept/reject.
 **Issues:** None so far — pending human review.
