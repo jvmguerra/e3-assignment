@@ -38,3 +38,38 @@ Bugs discovered during code review, with commit references showing the fix.
 - **Impact:** Console warnings and potential accessibility issues with tag autocomplete.
 - **Fixed in:** commit 083b8d2
 - **How:** Replaced the Popover/Command pattern with a plain dropdown list rendered conditionally below the input. No Base UI trigger needed.
+
+## Bug 6: Font not applied to form elements (buttons, inputs, selects)
+- **Found in:** commit 86e5187
+- **Description:** Browsers use their own system UI font for <button>, <input>, <select>, and <textarea> elements, overriding CSS inheritance. Geist font was applied to body but buttons and other form elements showed the browser default font.
+- **Impact:** Inconsistent typography across the app — note content used Geist but buttons, sidebar, and tags used the browser default.
+- **Fixed in:** commit e769c52
+- **How:** Added global CSS rule `button, input, select, textarea, [role="button"] { font-family: inherit; }` to force our font stack on all form elements.
+
+## Bug 7: Sidebar footer grows with page content
+- **Found in:** commit 86e5187
+- **Description:** Dashboard root used `min-h-screen` which allowed the sidebar to stretch beyond the viewport when the main content was tall. The sidebar footer (user info + logout) scrolled off-screen.
+- **Impact:** Users couldn't see the logout button or theme toggle without scrolling the entire page.
+- **Fixed in:** commit e769c52
+- **How:** Changed root from `min-h-screen` to `h-screen overflow-hidden`. Sidebar is now viewport-pinned, only the nav section and main content scroll independently.
+
+## Bug 8: Stale org ID after cross-user login
+- **Found in:** commit 86e5187
+- **Description:** Zustand persists `activeOrgId` in localStorage. When alice logs in after bob, the store has bob's org ID. The org-switcher's auto-select only fired when `!activeOrgId` (falsy), but the stale ID is truthy. Notes query fired with bob's org → 403 or empty.
+- **Impact:** Users saw an empty notes page after login until manually switching orgs.
+- **Fixed in:** commit 86e5187
+- **How:** Auto-select now validates stored org against user's actual org list. Also clears org store on auth state change (sign-out event), not just logout button click.
+
+## Bug 9: Image preview infinite re-fetch loop
+- **Found in:** commit 86e5187
+- **Description:** useEffect for loading image previews depended on the `files` array, which is a new reference on every TanStack Query render. Same pattern as the search headers bug.
+- **Impact:** Continuous API calls to fetch signed URLs, degrading performance.
+- **Fixed in:** commit 86e5187
+- **How:** Stabilized dependency with useMemo computing a string of file IDs.
+
+## Bug 10: rehype-raw silently breaks markdown rendering
+- **Found in:** commit 4a9abe2
+- **Description:** rehype-raw tries to parse note content as HTML. Seeded notes containing characters like <, >, & caused the render tree to silently break — no error thrown, just empty output.
+- **Impact:** Note content disappeared entirely after adding markdown support.
+- **Fixed in:** commit 6bc3f0a
+- **How:** Removed rehype-raw entirely. Warning blocks handled via pre-processing (split and render separately), image references converted to standard markdown syntax.

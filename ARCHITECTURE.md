@@ -73,8 +73,13 @@ e3/
 │   ├── check-notes-policies.ts      # Notes-specific RLS checks
 │   └── fix-circular-rls.ts          # Utility for RLS recursion fix
 ├── Dockerfile                       # Multi-stage production build
+├── .dockerignore                    # Excludes node_modules, .git, .env, test artifacts from Docker context
 ├── docker-compose.yml               # Local Docker setup
-└── railway.toml                     # Railway deployment config
+├── railway.toml                     # Railway deployment config
+├── vitest.config.ts                 # Vitest test configuration
+└── .github/
+    └── workflows/
+        └── ci.yml                   # GitHub Actions CI (lint, type-check, tests)
 ```
 
 ---
@@ -214,7 +219,7 @@ Org-scoped endpoints read the active org from the `x-org-id` header.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/health` | No | Health check |
+| GET | `/api/health` | No | Health check (returns status, uptime, latency, version, environment) |
 
 ### Organizations
 
@@ -411,3 +416,59 @@ Layer 3: Supabase RLS (PostgreSQL)
 | `idx_audit_logs_org_id` | audit_logs | B-tree | Audit log by org |
 | `idx_audit_logs_created_at` | audit_logs | B-tree | Time-range scans |
 | `idx_ai_summaries_note_id` | ai_summaries | B-tree | Summaries by note |
+
+---
+
+## Frontend: Markdown Rendering
+
+Notes render Markdown content using **react-markdown** with the **remark-gfm** plugin for GitHub Flavored Markdown (tables, strikethrough, task lists, autolinks).
+
+### Custom Extensions
+
+Two custom syntaxes are handled via pre-processing before the Markdown renderer:
+
+- **Warning blocks:** `[warn]text[/warn]` — Content is split at warning tags and rendered as highlighted warning panels between standard Markdown sections.
+- **Inline images:** `[image:filename.png]` — Converted to standard Markdown image syntax pointing to the note's file attachments (signed URLs).
+
+`rehype-raw` was initially included but removed because it silently broke rendering when note content contained characters like `<`, `>`, or `&` (see Bug 10 in BUGS.md).
+
+---
+
+## Testing
+
+### Vitest Configuration
+
+Tests use **Vitest** configured in `vitest.config.ts` with path aliases matching the Next.js `tsconfig.json`. Tests are co-located alongside source files or in `__tests__` directories.
+
+### Test Coverage
+
+21 unit tests covering:
+- Utility functions (`cn()`, date formatting, slug generation)
+- API helper functions (`apiSuccess`, `apiError`, `withAuth` behavior)
+- Store logic (Zustand org store)
+- Component rendering and interaction
+
+### Running Tests
+
+| Command | Description |
+|---------|-------------|
+| `npm test` | Run all tests once |
+| `npm run test:watch` | Run tests in watch mode |
+
+---
+
+## CI/CD
+
+### GitHub Actions
+
+The CI workflow (`.github/workflows/ci.yml`) runs on every push and pull request:
+1. Checkout + Node.js 22 setup
+2. `npm ci` (clean install)
+3. `npm run lint` (ESLint)
+4. `npm run type-check` (TypeScript)
+5. `npm test` (Vitest)
+
+### Husky Git Hooks
+
+- **pre-commit:** Runs ESLint on staged files via lint-staged.
+- **pre-push:** Runs `npm run type-check && npm test` to prevent broken code from reaching the remote. Hooks source nvm to ensure Node 22 is available.

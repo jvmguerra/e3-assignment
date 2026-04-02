@@ -12,6 +12,9 @@ A full-stack multi-tenant team notes application built with Next.js 16, Supabase
 - **AI Summary** — Generate structured summaries per note via MiniMax-M2.7 (OpenRouter), with accept/reject workflow
 - **Audit Logging** — Complete operational visibility into auth events, mutations, AI requests, failures, and permission denials
 - **Tenant Isolation** — Three-layer defense: middleware → route handler → RLS. Every query, mutation, upload, and AI call is org-scoped
+- **Markdown Rendering** — Notes render with full Markdown support (bold, italic, code, tables, blockquotes, GFM) plus custom extensions for warning blocks and inline image references
+- **Dark Mode** — System-aware dark mode with manual toggle in the sidebar
+- **Numeric Pagination** — Page numbers with jump-to-page across all paginated views
 
 ## Tech Stack
 
@@ -69,6 +72,42 @@ See `.env.example` for the full list. Required:
 | `npm run seed` | Seed 10k notes + test data |
 | `npm run lint` | Run ESLint |
 | `npm run type-check` | TypeScript type checking |
+| `npm test` | Run Vitest unit tests (21 tests) |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run docker:build` | Build production Docker image |
+| `npm run docker:run` | Run Docker container locally |
+
+## Markdown Syntax
+
+Notes support full Markdown rendering via react-markdown + remark-gfm, plus custom extensions.
+
+### Standard Markdown
+
+| Syntax | Result |
+|--------|--------|
+| `**bold**` | **bold** |
+| `*italic*` | *italic* |
+| `` `inline code` `` | `inline code` |
+| ` ``` code block ``` ` | Fenced code block |
+| `> blockquote` | Blockquote |
+| `- item` / `1. item` | Unordered / ordered list |
+| `\| col \| col \|` | Table (GFM) |
+| `[text](url)` | Link |
+| `---` | Horizontal rule |
+
+### Custom Extensions
+
+| Syntax | Result |
+|--------|--------|
+| `[warn]text[/warn]` | Warning block with highlighted background |
+| `[image:filename.png]` | Inline image rendered from the note's file attachments |
+
+## Testing
+
+- **Unit tests:** `npm test` runs 21 Vitest unit tests covering utilities, API helpers, and component logic.
+- **Pre-commit hook (Husky):** Runs ESLint on staged files before every commit.
+- **Pre-push hook (Husky):** Runs type-check + full test suite before every push.
+- **CI:** GitHub Actions workflow runs lint, type-check, and tests on every push and PR.
 
 ## Architecture
 

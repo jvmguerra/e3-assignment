@@ -64,3 +64,20 @@ A running scratchpad of plans, actions, decisions, and reasoning throughout the 
 **Reasoning:** Documentation is a deliverable — the README is the first thing reviewers see, and ARCHITECTURE.md provides the deep technical reference. Both need to reflect the actual codebase accurately (verified against source files, migrations, and route handlers).
 **Result:** README.md replaced with feature list, tech stack table, quick start, test credentials, env vars, scripts, architecture overview, and links to all deliverables. ARCHITECTURE.md created with directory structure, all 9 database tables with columns/constraints, 26 API endpoints with methods/paths/auth/descriptions, data flow diagrams for auth/notes/AI/files, three-layer security architecture, RLS policy summary, helper functions, triggers, and indexes. NOTES.md updated with Phase 6 entry.
 **Issues:** None.
+
+## 2026-04-02 03:00 — Post-Build Improvements
+
+**Plan:** Three parallel agents — Testing+CI, UI fixes (7 items), Railway devex. Then additional feature work for markdown, pagination, and tag UX.
+**Reasoning:** Polish and infrastructure improvements to demonstrate production-readiness and code quality before final submission.
+**Result:** 
+- Testing: 21 Vitest unit tests, Husky pre-commit/pre-push hooks, GitHub Actions CI
+- Dark mode: ThemeProvider + toggle in sidebar
+- Layout consistency: standardized max-w-6xl (wide) / max-w-4xl (focused) across all pages
+- Image previews: fixed infinite loop, added loading skeletons
+- Font: forced inheritance on form elements, Geist applied globally
+- Stale org bug: auto-select validates against user's actual org list
+- Markdown: full rendering with custom [warn] and [image:filename] extensions
+- Numeric pagination: page numbers, jump-to-page, reusable component
+- Collapsible tag filter: top 4 visible, expand, search
+- Railway: .dockerignore, enhanced health check, Docker scripts
+**Issues:** rehype-raw caused silent render failures (removed), Husky hooks needed nvm sourcing for Node 22.
