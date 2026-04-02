@@ -30,24 +30,24 @@ const PAGE_SIZE = 50;
 
 const ACTION_OPTIONS = [
   { value: "all", label: "All actions" },
-  { value: "auth.login", label: "auth.login" },
-  { value: "auth.signup", label: "auth.signup" },
-  { value: "note.create", label: "note.create" },
-  { value: "note.update", label: "note.update" },
-  { value: "note.delete", label: "note.delete" },
-  { value: "file.upload", label: "file.upload" },
-  { value: "file.download", label: "file.download" },
-  { value: "file.delete", label: "file.delete" },
-  { value: "ai.summary.requested", label: "ai.summary.requested" },
-  { value: "ai.summary.completed", label: "ai.summary.completed" },
-  { value: "ai.summary.accepted", label: "ai.summary.accepted" },
-  { value: "ai.summary.rejected", label: "ai.summary.rejected" },
-  { value: "ai.summary.failed", label: "ai.summary.failed" },
-  { value: "org.created", label: "org.created" },
-  { value: "org.member.add", label: "org.member.add" },
-  { value: "org.member.remove", label: "org.member.remove" },
-  { value: "org.member.role_change", label: "org.member.role_change" },
-  { value: "permission.denied", label: "permission.denied" },
+  { value: "auth.login", label: "Login" },
+  { value: "auth.signup", label: "Signup" },
+  { value: "note.create", label: "Note Created" },
+  { value: "note.update", label: "Note Updated" },
+  { value: "note.delete", label: "Note Deleted" },
+  { value: "file.upload", label: "File Upload" },
+  { value: "file.download", label: "File Download" },
+  { value: "file.delete", label: "File Deleted" },
+  { value: "ai.summary.requested", label: "AI Requested" },
+  { value: "ai.summary.completed", label: "AI Completed" },
+  { value: "ai.summary.accepted", label: "AI Accepted" },
+  { value: "ai.summary.rejected", label: "AI Rejected" },
+  { value: "ai.summary.failed", label: "AI Failed" },
+  { value: "org.created", label: "Org Created" },
+  { value: "org.member.add", label: "Member Added" },
+  { value: "org.member.remove", label: "Member Removed" },
+  { value: "org.member.role_change", label: "Role Changed" },
+  { value: "permission.denied", label: "Permission Denied" },
 ];
 
 type BadgeColor = "green" | "blue" | "yellow" | "red" | "default";
@@ -93,11 +93,36 @@ const badgeColorClasses: Record<BadgeColor, string> = {
   default: "bg-secondary text-secondary-foreground",
 };
 
+const ACTION_LABELS: Record<string, string> = {
+  "auth.login": "Login",
+  "auth.signup": "Signup",
+  "auth.logout": "Logout",
+  "note.create": "Note Created",
+  "note.update": "Note Updated",
+  "note.delete": "Note Deleted",
+  "note.share": "Note Shared",
+  "note.unshare": "Note Unshared",
+  "file.upload": "File Upload",
+  "file.download": "File Download",
+  "file.delete": "File Deleted",
+  "ai.summary.requested": "AI Requested",
+  "ai.summary.completed": "AI Completed",
+  "ai.summary.accepted": "AI Accepted",
+  "ai.summary.rejected": "AI Rejected",
+  "ai.summary.failed": "AI Failed",
+  "org.created": "Org Created",
+  "org.member.add": "Member Added",
+  "org.member.remove": "Member Removed",
+  "org.member.role_change": "Role Changed",
+  "permission.denied": "Denied",
+};
+
 function ActionBadge({ action }: { action: string }) {
   const color = getActionBadgeColor(action);
+  const label = ACTION_LABELS[action] ?? action;
   return (
-    <Badge variant="outline" className={badgeColorClasses[color]}>
-      {action}
+    <Badge variant="outline" className={`${badgeColorClasses[color]} whitespace-nowrap`}>
+      {label}
     </Badge>
   );
 }
@@ -303,9 +328,8 @@ export default function AuditLogPage() {
     );
   }
 
-  function handleFilterChange() {
-    setPage(1);
-  }
+  // Filter changes are handled inline via setState — page resets
+  // are already embedded in each filter's onChange handler below.
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -327,7 +351,7 @@ export default function AuditLogPage() {
             value={actionFilter}
             onValueChange={(v) => {
               setActionFilter(v ?? "all");
-              handleFilterChange();
+              setPage(1);
             }}
           >
             <SelectTrigger className="w-52">
@@ -352,7 +376,7 @@ export default function AuditLogPage() {
             value={dateFrom}
             onChange={(e) => {
               setDateFrom(e.target.value);
-              handleFilterChange();
+              setPage(1);
             }}
             className="w-40"
           />
@@ -367,7 +391,7 @@ export default function AuditLogPage() {
             value={dateTo}
             onChange={(e) => {
               setDateTo(e.target.value);
-              handleFilterChange();
+              setPage(1);
             }}
             className="w-40"
           />
@@ -437,9 +461,11 @@ export default function AuditLogPage() {
               </TableRow>
             ) : (
               logs.map((log) => {
+                // API returns `actor` alias from the profiles join
+                const actor = (log as unknown as Record<string, unknown>).actor as { display_name?: string; email?: string } | null;
                 const userName =
-                  log.profile?.display_name ??
-                  log.profile?.email ??
+                  actor?.display_name ??
+                  actor?.email ??
                   log.user_id.slice(0, 8) + "…";
 
                 const resourceLabel =
@@ -458,14 +484,14 @@ export default function AuditLogPage() {
                     <TableCell className="text-muted-foreground font-mono text-xs">
                       {resourceLabel}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground max-w-xs">
+                    <TableCell className="text-xs text-muted-foreground max-w-50">
                       <span
                         title={
                           log.metadata
                             ? JSON.stringify(log.metadata, null, 2)
                             : undefined
                         }
-                        className="cursor-help"
+                        className="cursor-help truncate block"
                       >
                         {formatMetadata(log.metadata)}
                       </span>

@@ -84,7 +84,12 @@ export function POST(request: NextRequest, context: RouteContext) {
       return apiError('User is already a member of this organization', 409);
     }
 
-    const { data: newMembership, error: insertError } = await supabase
+    // Use admin client for insert to avoid RLS complications with
+    // the SELECT returned by .select().single()
+    const { createAdminClient } = await import('@/lib/supabase/admin');
+    const admin = createAdminClient();
+
+    const { data: newMembership, error: insertError } = await admin
       .from('org_memberships')
       .insert({ org_id: orgId, user_id: profile.id, role })
       .select()
