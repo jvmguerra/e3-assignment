@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OrgSwitcher } from "@/components/orgs/org-switcher";
 import { useAuth } from "@/hooks/use-auth";
+import { useOrgStore } from "@/stores/org-store";
 import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
@@ -127,6 +128,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   async function handleLogout() {
     try {
       const supabase = createClient();
+      useOrgStore.getState().setActiveOrgId(null);
       await supabase.auth.signOut();
       router.replace("/login");
     } catch {
