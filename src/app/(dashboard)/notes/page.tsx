@@ -191,7 +191,7 @@ export default function NotesPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {notes.map((note) => (
             <Link key={note.id} href={`/notes/${note.id}`} className="group focus:outline-none">
-              <Card className="h-full transition-shadow group-hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-ring">
+              <Card className="h-full flex flex-col transition-shadow group-hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-ring">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="line-clamp-2 leading-snug group-hover:text-primary transition-colors">
@@ -206,8 +206,8 @@ export default function NotesPage() {
                   )}
                 </CardHeader>
 
-                {note.tags && note.tags.length > 0 && (
-                  <CardContent>
+                <CardContent className="flex-1">
+                  {note.tags && note.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {note.tags.map((tag) => (
                         <Badge key={tag} variant="secondary" className="text-xs">
@@ -215,8 +215,8 @@ export default function NotesPage() {
                         </Badge>
                       ))}
                     </div>
-                  </CardContent>
-                )}
+                  )}
+                </CardContent>
 
                 <CardFooter className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span>
