@@ -57,3 +57,10 @@ A running scratchpad of plans, actions, decisions, and reasoning throughout the 
 **Reasoning:** Seed and deployment are independent. Image previews requested by user.
 **Result:** Seed script generates 10k notes across 4 orgs with overlapping tags/titles, 10 users with cross-org memberships, ~15k note versions, note shares, 20-30 files, 50-100 AI summaries. Dockerfile multi-stage build for ~150MB image. Railway config with health check. Image preview thumbnails in file list and attachments.
 **Issues:** Pending seed run and Railway deployment.
+
+## 2026-04-02 02:30 — Phase 6: Finalize Documentation
+
+**Plan:** Replace boilerplate README with comprehensive project documentation. Create ARCHITECTURE.md with full schema, API reference, data flows, and security architecture. Finalize NOTES.md with all phases.
+**Reasoning:** Documentation is a deliverable — the README is the first thing reviewers see, and ARCHITECTURE.md provides the deep technical reference. Both need to reflect the actual codebase accurately (verified against source files, migrations, and route handlers).
+**Result:** README.md replaced with feature list, tech stack table, quick start, test credentials, env vars, scripts, architecture overview, and links to all deliverables. ARCHITECTURE.md created with directory structure, all 9 database tables with columns/constraints, 26 API endpoints with methods/paths/auth/descriptions, data flow diagrams for auth/notes/AI/files, three-layer security architecture, RLS policy summary, helper functions, triggers, and indexes. NOTES.md updated with Phase 6 entry.
+**Issues:** None.
