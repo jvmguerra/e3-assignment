@@ -24,3 +24,17 @@ Bugs discovered during code review, with commit references showing the fix.
 - **Impact:** Users could not create organizations at all.
 - **Fixed in:** commit 532bfeb
 - **How:** Used the admin client (service role, bypasses RLS) for the initial org + membership creation. All subsequent operations use the user's client with RLS.
+
+## Bug 4: Circular RLS recursion between notes and note_shares
+- **Found in:** commit f9acacb
+- **Description:** `notes_select` policy checked `EXISTS (SELECT 1 FROM note_shares ...)` for shared visibility. `note_shares_select` policy checked `EXISTS (SELECT 1 FROM notes ...)` for org access. This created: notes_select → note_shares_select → notes_select → infinite recursion. Error: `42P17 infinite recursion detected in policy for relation "notes"`.
+- **Impact:** Creating, listing, and searching notes all failed with 500 errors. The entire notes feature was broken.
+- **Fixed in:** commit 083b8d2
+- **How:** Added two more SECURITY DEFINER helper functions: `user_can_access_note_org()` (checks org membership via notes without triggering notes RLS) and `user_is_shared_on_note()` (checks note_shares without triggering note_shares RLS). Rewrote policies for notes, note_versions, note_shares, and ai_summaries to use these helpers, breaking all circular references.
+
+## Bug 5: Base UI PopoverTrigger requires native button element
+- **Found in:** commit 2b75a64
+- **Description:** TagInput used a `<div>` inside `PopoverTrigger render={...}` but Base UI requires a native `<button>` element when `nativeButton` is true (default). Console warning: "A component that acts as a button expected a native `<button>`".
+- **Impact:** Console warnings and potential accessibility issues with tag autocomplete.
+- **Fixed in:** commit 083b8d2
+- **How:** Replaced the Popover/Command pattern with a plain dropdown list rendered conditionally below the input. No Base UI trigger needed.
