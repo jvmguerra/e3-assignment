@@ -74,13 +74,13 @@ export const GET = withAuth(async (request: NextRequest, { orgId, membership, us
   }
 
   if (fromFilter) {
-    query = query.gte('created_at', fromFilter);
+    // If only a date (YYYY-MM-DD) is supplied, use start-of-day UTC
+    const lowerBound = fromFilter.includes('T') ? fromFilter : `${fromFilter}T00:00:00.000Z`;
+    query = query.gte('created_at', lowerBound);
   }
 
   if (toFilter) {
-    // Make the upper bound inclusive by using lte against the provided date-string.
-    // If only a date (YYYY-MM-DD) is supplied, append end-of-day time so the full
-    // day is captured.
+    // If only a date (YYYY-MM-DD) is supplied, use end-of-day UTC
     const upperBound = toFilter.includes('T') ? toFilter : `${toFilter}T23:59:59.999Z`;
     query = query.lte('created_at', upperBound);
   }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,6 +71,7 @@ export default function MembersPage() {
   const activeOrgId = useOrgStore((s) => s.activeOrgId);
   const headers = useApiHeaders();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [addOpen, setAddOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -86,6 +88,9 @@ export default function MembersPage() {
 
   const members = data?.members ?? [];
   const ownerCount = members.filter((m) => m.role === "owner").length;
+  const myMembership = members.find((m) => m.user_id === user?.id);
+  const canManageRoles = myMembership?.role === "owner";
+  const canManageMembers = myMembership?.role === "owner" || myMembership?.role === "admin";
 
   const addMutation = useMutation({
     mutationFn: (body: { email: string; role: Role }) =>
@@ -161,7 +166,7 @@ export default function MembersPage() {
             Manage who has access to this organization.
           </p>
         </div>
-        <Button onClick={() => setAddOpen(true)}>
+        <Button onClick={() => setAddOpen(true)} disabled={!canManageMembers}>
           <PlusIcon className="size-4" />
           Add member
         </Button>
@@ -224,7 +229,7 @@ export default function MembersPage() {
                                 role: value as Role,
                               })
                             }
-                            disabled={roleMutation.isPending || isLastOwner}
+                            disabled={roleMutation.isPending || isLastOwner || !canManageRoles}
                           >
                             <SelectTrigger size="sm" className="w-28">
                               <SelectValue />
@@ -242,7 +247,7 @@ export default function MembersPage() {
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            disabled={isLastOwner || removeMutation.isPending}
+                            disabled={isLastOwner || removeMutation.isPending || !canManageMembers}
                             onClick={() => removeMutation.mutate(member.id)}
                             title={
                               isLastOwner

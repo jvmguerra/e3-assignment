@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { apiFetch, useApiHeaders } from "@/hooks/use-api";
 import { useOrgStore } from "@/stores/org-store";
+import { useAuth } from "@/hooks/use-auth";
 import type { AuditLog, OrgMembership } from "@/types/index";
 
 const PAGE_SIZE = 50;
@@ -181,6 +182,30 @@ function TableSkeletonRows() {
   );
 }
 
+function ExpandableDetails({ metadata }: { metadata: Record<string, unknown> }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const summary = formatMetadata(metadata);
+
+  if (summary === "—") return <span className="text-muted-foreground">—</span>;
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="text-left hover:text-foreground transition-colors truncate block max-w-full"
+      >
+        {expanded ? "Hide details" : summary}
+      </button>
+      {expanded && (
+        <pre className="mt-1.5 rounded-md bg-muted p-2 text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-40 overflow-y-auto">
+          {JSON.stringify(metadata, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
+
 interface AuditLogResponse {
   logs: AuditLog[];
   total: number;
@@ -195,6 +220,7 @@ interface MembersResponse {
 export default function AuditLogPage() {
   const activeOrgId = useOrgStore((s) => s.activeOrgId);
   const headers = useApiHeaders();
+  const { user } = useAuth();
 
   const [page, setPage] = React.useState(1);
   const [actionFilter, setActionFilter] = React.useState("all");
@@ -210,13 +236,23 @@ export default function AuditLogPage() {
       enabled: !!activeOrgId,
     });
 
-  // We need the current user's role — derive from members list by matching auth
-  // The members endpoint returns all members; we check if there's any owner/admin
-  // We get the current user ID from the auth header response via profile data.
-  // Since members page fetches all members with profile info, we need a way to
-  // identify the current user. The members API response includes profile IDs.
-  // We'll use a simpler approach: attempt to fetch audit logs and let the API deny if needed.
-  // For UI gating, we check if the current user is owner or admin via membership data.
+  // Derive current user's role from members list
+  const members = membersData?.members ?? [];
+  const myMembership = members.find((m) => m.user_id === user?.id);
+  const hasAdminAccess = myMembership?.role === "owner" || myMembership?.role === "admin";
+
+  // Show access denied immediately if members loaded and user is not admin/owner
+  if (!membersLoading && members.length > 0 && !hasAdminAccess) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <ScrollIcon className="size-12 text-muted-foreground/40" />
+        <p className="text-lg font-medium">Access denied</p>
+        <p className="text-sm text-muted-foreground">
+          Only organization owners and admins can view the audit log.
+        </p>
+      </div>
+    );
+  }
 
   const queryParams = React.useMemo(() => {
     const params = new URLSearchParams({
@@ -239,7 +275,7 @@ export default function AuditLogPage() {
   } = useQuery<AuditLogResponse>({
     queryKey: ["audit-logs", activeOrgId, page, actionFilter, dateFrom, dateTo],
     queryFn: () => apiFetch(`/api/audit-logs?${queryParams}`, { headers }),
-    enabled: !!activeOrgId,
+    enabled: !!activeOrgId && hasAdminAccess,
   });
 
   const logs: AuditLog[] = data?.logs ?? [];
@@ -282,51 +318,7 @@ export default function AuditLogPage() {
     );
   }
 
-  // Role gate: only owner/admin can view
-  const members = membersData?.members ?? [];
-  const hasAdminAccess = members.some(
-    (m) => m.role === "owner" || m.role === "admin"
-  );
-
-  // If the members list is non-empty but no owner/admin found, the current user is a member
-  // (the API already returns the full list for admins, or just the user's own entry for members)
-  // We use the presence of multiple members OR the role field to determine access.
-  // More reliable: check if the API returned an access error.
-  if (isError) {
-    const message =
-      error instanceof Error ? error.message : "Failed to load audit log";
-    const isAccessDenied =
-      message.toLowerCase().includes("forbidden") ||
-      message.toLowerCase().includes("unauthorized") ||
-      message.toLowerCase().includes("access denied") ||
-      message.toLowerCase().includes("permission");
-
-    if (isAccessDenied) {
-      return (
-        <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-          <ScrollIcon className="size-12 text-muted-foreground/40" />
-          <p className="text-lg font-medium">Access denied</p>
-          <p className="text-sm text-muted-foreground">
-            Only organization owners and admins can view the audit log.
-          </p>
-        </div>
-      );
-    }
-  }
-
-  // Check role from members data — if members list only contains member-role entries
-  // and no owner/admin, show access denied
-  if (!membersLoading && members.length > 0 && !hasAdminAccess) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-        <ScrollIcon className="size-12 text-muted-foreground/40" />
-        <p className="text-lg font-medium">Access denied</p>
-        <p className="text-sm text-muted-foreground">
-          Only organization owners and admins can view the audit log.
-        </p>
-      </div>
-    );
-  }
+  // Role gate already handled above — if we reach here, user is admin/owner.
 
   // Filter changes are handled inline via setState — page resets
   // are already embedded in each filter's onChange handler below.
@@ -485,16 +477,7 @@ export default function AuditLogPage() {
                       {resourceLabel}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-50">
-                      <span
-                        title={
-                          log.metadata
-                            ? JSON.stringify(log.metadata, null, 2)
-                            : undefined
-                        }
-                        className="cursor-help truncate block"
-                      >
-                        {formatMetadata(log.metadata)}
-                      </span>
+                      <ExpandableDetails metadata={log.metadata} />
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                       {formatTimestamp(log.created_at)}
