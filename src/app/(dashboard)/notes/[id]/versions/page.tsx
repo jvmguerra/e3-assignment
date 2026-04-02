@@ -58,7 +58,7 @@ export default function VersionsPage() {
     enabled: !!activeOrgId && !!noteId,
   });
 
-  const versions: NoteVersion[] = data?.versions ?? [];
+  const versions: NoteVersion[] = React.useMemo(() => data?.versions ?? [], [data]);
 
   function toggleExpand(versionId: string) {
     setExpandedVersionId((prev) => (prev === versionId ? null : versionId));

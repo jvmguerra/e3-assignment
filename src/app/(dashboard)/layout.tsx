@@ -158,8 +158,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sheetOpen, setSheetOpen] = React.useState(false);
 
   // Close mobile sheet on navigation
-  useEffect(() => {
-    setSheetOpen(false);
+  React.useEffect(() => {
+    if (sheetOpen) setSheetOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   useEffect(() => {

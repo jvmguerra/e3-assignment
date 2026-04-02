@@ -6,7 +6,6 @@ import { SearchIcon, Loader2 } from "lucide-react";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -15,7 +14,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { useApiHeaders } from "@/hooks/use-api";
 import { useOrgStore } from "@/stores/org-store";
 import { toast } from "sonner";
 import type { Note, Visibility } from "@/types/index";
@@ -84,7 +82,6 @@ interface SearchResponse {
 }
 
 export default function SearchPage() {
-  const headers = useApiHeaders();
   const activeOrgId = useOrgStore((s) => s.activeOrgId);
 
   const [query, setQuery] = React.useState("");
@@ -138,7 +135,7 @@ export default function SearchPage() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, page, activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [debouncedQuery, page, activeOrgId]);
 
   const totalPages = results ? Math.ceil(results.total / LIMIT) : 0;
   const hasResults = results && results.results.length > 0;

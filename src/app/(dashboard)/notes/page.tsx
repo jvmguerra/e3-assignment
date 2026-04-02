@@ -97,7 +97,7 @@ export default function NotesPage() {
     enabled: !!activeOrgId,
   });
 
-  const notes: Note[] = data?.notes ?? [];
+  const notes: Note[] = React.useMemo(() => data?.notes ?? [], [data]);
   const total: number = data?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 

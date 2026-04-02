@@ -166,7 +166,7 @@ export default function FilesPage() {
     enabled: !!activeOrgId,
   });
 
-  const files: FileRecord[] = data?.files ?? [];
+  const files: FileRecord[] = React.useMemo(() => data?.files ?? [], [data]);
 
   const [previews, setPreviews] = React.useState<Record<string, string>>({});
 
@@ -196,7 +196,7 @@ export default function FilesPage() {
     }
 
     loadPreviews();
-  }, [imageFileIds, activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [imageFileIds, activeOrgId]);
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -331,6 +331,7 @@ export default function FilesPage() {
                     <TableCell>
                       <div className="flex items-center gap-2 min-w-0">
                         {previews[file.id] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={previews[file.id]}
                             alt={file.file_name}

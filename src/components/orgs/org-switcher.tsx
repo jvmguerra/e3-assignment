@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ChevronsUpDown, PlusIcon, BuildingIcon } from "lucide-react";
@@ -38,7 +38,7 @@ export function OrgSwitcher() {
     },
   });
 
-  const orgs = data?.orgs ?? [];
+  const orgs = useMemo(() => data?.orgs ?? [], [data]);
   const activeOrg = orgs.find((o) => o.id === activeOrgId) ?? orgs[0] ?? null;
 
   // Auto-select first org if none selected or if stored org is no longer valid

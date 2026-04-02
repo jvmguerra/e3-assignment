@@ -101,7 +101,7 @@ export function FileAttachments({ noteId }: FileAttachmentsProps) {
     enabled: !!activeOrgId && !!noteId,
   });
 
-  const files: FileRecord[] = data?.files ?? [];
+  const files: FileRecord[] = React.useMemo(() => data?.files ?? [], [data]);
 
   const [previews, setPreviews] = React.useState<Record<string, string>>({});
 
@@ -131,7 +131,7 @@ export function FileAttachments({ noteId }: FileAttachmentsProps) {
     }
 
     loadPreviews();
-  }, [imageFileIds, activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [imageFileIds, activeOrgId]);
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -274,6 +274,7 @@ export function FileAttachments({ noteId }: FileAttachmentsProps) {
             >
               <div className="flex items-center gap-2 min-w-0">
                 {previews[file.id] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={previews[file.id]}
                     alt={file.file_name}
