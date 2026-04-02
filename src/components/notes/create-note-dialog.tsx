@@ -122,9 +122,12 @@ export function CreateNoteDialog({ children }: CreateNoteDialogProps) {
                 id="note-content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your note here..."
-                className="min-h-30 resize-y"
+                placeholder="Write your note here... (supports Markdown)"
+                className="min-h-30 resize-y font-mono text-sm"
               />
+              <p className="text-xs text-muted-foreground">
+                Supports **bold**, *italic*, `code`, lists, tables, [warn]warnings[/warn]
+              </p>
             </div>
 
             <div className="flex flex-col gap-1.5">

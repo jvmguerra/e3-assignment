@@ -41,6 +41,7 @@ import { TagInput } from "@/components/notes/tag-input";
 import { ShareDialog } from "@/components/notes/share-dialog";
 import { AISummary } from "@/components/notes/ai-summary";
 import { FileAttachments } from "@/components/notes/file-attachments";
+import { MarkdownRenderer } from "@/components/notes/markdown-renderer";
 import { apiFetch, useApiHeaders } from "@/hooks/use-api";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrgStore } from "@/stores/org-store";
@@ -170,6 +171,31 @@ export default function NoteDetailPage() {
   });
 
   const note: Note | undefined = data?.note;
+
+  // Load signed URLs for [image:fileId] references in note content
+  const [attachedImageUrls, setAttachedImageUrls] = React.useState<Record<string, string>>({});
+  const imageRefs = React.useMemo(() => {
+    if (!note?.content) return [];
+    const matches = [...note.content.matchAll(/\[image:([a-f0-9-]+)\]/g)];
+    return matches.map((m) => m[1]);
+  }, [note?.content]);
+
+  React.useEffect(() => {
+    if (!imageRefs.length || !activeOrgId) return;
+    async function loadImageUrls() {
+      const urls: Record<string, string> = {};
+      for (const fileId of imageRefs) {
+        try {
+          const data = await apiFetch(`/api/files/${fileId}`, {
+            headers: { "x-org-id": activeOrgId! },
+          });
+          if (data.download_url) urls[fileId] = data.download_url;
+        } catch { /* ignore */ }
+      }
+      setAttachedImageUrls(urls);
+    }
+    loadImageUrls();
+  }, [imageRefs.join(","), activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startEditing() {
     if (!note) return;
@@ -397,7 +423,7 @@ export default function NoteDetailPage() {
 
           {/* Content */}
           {editing ? (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="edit-content">Content</Label>
               <Textarea
                 id="edit-content"
@@ -406,13 +432,14 @@ export default function NoteDetailPage() {
                 className="min-h-75 resize-y font-mono text-sm"
                 placeholder="Write your note content here..."
               />
+              <p className="text-xs text-muted-foreground">
+                Supports **Markdown**: *italic*, **bold**, `code`, ```code blocks```, {">"} blockquotes, - lists, | tables |, [links](url), [warn]warnings[/warn], [image:file-id]
+              </p>
             </div>
           ) : (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div>
               {note.content ? (
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground bg-transparent p-0 border-0">
-                  {note.content}
-                </pre>
+                <MarkdownRenderer content={note.content} attachedImages={attachedImageUrls} />
               ) : (
                 <p className="text-muted-foreground italic">No content yet.</p>
               )}

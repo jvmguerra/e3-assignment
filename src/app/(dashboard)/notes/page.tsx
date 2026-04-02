@@ -23,6 +23,23 @@ import type { Note, Visibility } from "@/types/index";
 
 const PAGE_SIZE = 20;
 
+/** Strip markdown syntax for plain-text card previews */
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\[warn\]|\[\/warn\]/g, "")
+    .replace(/\[image:[a-f0-9-]+\]/g, "[image]")
+    .replace(/```[\s\S]*?```/g, "[code]")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/^#+\s/gm, "")
+    .replace(/^>\s/gm, "")
+    .replace(/^[-*]\s/gm, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\n{2,}/g, " ")
+    .trim();
+}
+
 function VisibilityBadge({ visibility }: { visibility: Visibility }) {
   const map: Record<Visibility, { label: string; className: string }> = {
     private: { label: "Private", className: "bg-secondary text-secondary-foreground" },
@@ -202,7 +219,7 @@ export default function NotesPage() {
                   </div>
                   {note.content && (
                     <CardDescription className="line-clamp-3">
-                      {note.content.slice(0, 150)}
+                      {stripMarkdown(note.content).slice(0, 150)}
                     </CardDescription>
                   )}
                 </CardHeader>
