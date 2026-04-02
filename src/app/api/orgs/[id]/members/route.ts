@@ -98,7 +98,7 @@ export function POST(request: NextRequest, context: RouteContext) {
     await auditLog(supabase, {
       org_id: orgId,
       user_id: user.id,
-      action: 'member.added',
+      action: 'org.member.add',
       resource_type: 'org_membership',
       resource_id: newMembership.id,
       metadata: { target_user_id: profile.id, target_email: email, role },
@@ -170,7 +170,7 @@ export function DELETE(request: NextRequest, context: RouteContext) {
     await auditLog(supabase, {
       org_id: orgId,
       user_id: user.id,
-      action: 'member.removed',
+      action: 'org.member.remove',
       resource_type: 'org_membership',
       resource_id: targetMembership.id,
       metadata: { target_user_id: targetUserId },
@@ -252,7 +252,7 @@ export function PATCH(request: NextRequest, context: RouteContext) {
     await auditLog(supabase, {
       org_id: orgId,
       user_id: user.id,
-      action: 'member.role_changed',
+      action: 'org.member.role_change',
       resource_type: 'org_membership',
       resource_id: targetMembership.id,
       metadata: {

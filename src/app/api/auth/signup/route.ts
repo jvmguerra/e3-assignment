@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { apiError, apiSuccess } from '@/lib/api-utils';
+import { apiError, apiSuccess, logError } from '@/lib/api-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,10 +41,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Auth events have no org context yet — emit structured console log only.
+    // The DB audit write is skipped because insert_audit_log requires a valid org_id.
+    console.log(JSON.stringify({
+      type: 'audit',
+      action: 'auth.signup',
+      user_id: data.user.id,
+      email: data.user.email,
+      created_at: new Date().toISOString(),
+    }));
+
     return apiSuccess({ user: data.user }, 201);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Internal server error';
-    console.error('POST /api/auth/signup error:', message);
+    logError('/api/auth/signup', 'POST', message);
     return apiError('Internal server error', 500);
   }
 }

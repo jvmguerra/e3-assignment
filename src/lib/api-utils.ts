@@ -7,6 +7,18 @@ export function apiError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
 
+// Structured error logger for Railway log stream
+export function logError(path: string, method: string, error: string, userId?: string) {
+  console.error(JSON.stringify({
+    type: 'error',
+    path,
+    method,
+    error,
+    userId,
+    timestamp: new Date().toISOString(),
+  }));
+}
+
 // Standard API success response
 export function apiSuccess<T>(data: T, status: number = 200) {
   return NextResponse.json(data, { status });
