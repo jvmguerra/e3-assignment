@@ -249,8 +249,14 @@ export default function AuditLogPage() {
     if (actionFilter && actionFilter !== "all") {
       params.set("action", actionFilter);
     }
-    if (dateFrom) params.set("from", dateFrom);
-    if (dateTo) params.set("to", dateTo);
+    // Convert date inputs to proper ISO timestamps using local timezone
+    // so "April 1st" means midnight-to-midnight in the user's timezone
+    if (dateFrom) {
+      params.set("from", new Date(`${dateFrom}T00:00:00`).toISOString());
+    }
+    if (dateTo) {
+      params.set("to", new Date(`${dateTo}T23:59:59.999`).toISOString());
+    }
     return params.toString();
   }, [page, actionFilter, dateFrom, dateTo]);
 
