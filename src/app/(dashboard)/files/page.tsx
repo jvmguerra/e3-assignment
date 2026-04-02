@@ -170,31 +170,33 @@ export default function FilesPage() {
 
   const [previews, setPreviews] = React.useState<Record<string, string>>({});
 
-  React.useEffect(() => {
-    if (!files.length || !activeOrgId) return;
+  const imageFileIds = React.useMemo(
+    () => files.filter((f) => f.mime_type.startsWith("image/")).map((f) => f.id).join(","),
+    [files]
+  );
 
-    const imageFiles = files.filter((f) => f.mime_type.startsWith("image/"));
-    if (!imageFiles.length) return;
+  React.useEffect(() => {
+    if (!imageFileIds || !activeOrgId) return;
+
+    const ids = imageFileIds.split(",");
 
     async function loadPreviews() {
       const newPreviews: Record<string, string> = {};
-      for (const file of imageFiles) {
+      for (const id of ids) {
         try {
-          const fileData = await apiFetch(`/api/files/${file.id}`, {
+          const data = await apiFetch(`/api/files/${id}`, {
             headers: { "x-org-id": activeOrgId! },
           });
-          if (fileData.download_url) {
-            newPreviews[file.id] = fileData.download_url;
+          if (data.download_url) {
+            newPreviews[id] = data.download_url;
           }
-        } catch {
-          /* ignore preview failures */
-        }
+        } catch { /* ignore */ }
       }
       setPreviews((prev) => ({ ...prev, ...newPreviews }));
     }
 
     loadPreviews();
-  }, [files, activeOrgId]);
+  }, [imageFileIds, activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -334,6 +336,8 @@ export default function FilesPage() {
                             alt={file.file_name}
                             className="size-8 rounded object-cover border shrink-0"
                           />
+                        ) : file.mime_type.startsWith("image/") ? (
+                          <Skeleton className="size-8 rounded" />
                         ) : (
                           <FileIcon className="size-4 shrink-0 text-muted-foreground" />
                         )}

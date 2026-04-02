@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.*
+docs
+scripts
+*.md
+!README.md
+.github
+.husky
+.vscode
+.DS_Store
