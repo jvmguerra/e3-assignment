@@ -1,1 +1,3 @@
+. "$HOME/.nvm/nvm.sh" 2>/dev/null
+nvm use 22 --silent 2>/dev/null
 npx lint-staged
