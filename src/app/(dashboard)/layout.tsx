@@ -58,7 +58,7 @@ function ThemeToggle() {
   );
 }
 
-function SidebarNav({ pathname }: { pathname: string }) {
+function SidebarNav({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return (
     <nav className="flex flex-col gap-1 px-2">
       {navItems.map(({ href, label, icon: Icon }) => {
@@ -67,6 +67,7 @@ function SidebarNav({ pathname }: { pathname: string }) {
           <Link
             key={href}
             href={href}
+            onClick={onNavigate}
             className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
               isActive
                 ? "bg-accent text-accent-foreground"
@@ -82,7 +83,15 @@ function SidebarNav({ pathname }: { pathname: string }) {
   );
 }
 
-function SidebarContent({ pathname, onLogout }: { pathname: string; onLogout: () => void }) {
+function SidebarContent({
+  pathname,
+  onLogout,
+  onNavigate,
+}: {
+  pathname: string;
+  onLogout: () => void;
+  onNavigate?: () => void;
+}) {
   const { user, loading } = useAuth();
 
   const initials = user?.email
@@ -91,8 +100,8 @@ function SidebarContent({ pathname, onLogout }: { pathname: string; onLogout: ()
 
   return (
     <div className="flex h-full flex-col">
-      {/* Org switcher */}
-      <div className="p-3">
+      {/* Org switcher — add top padding on mobile to avoid overlap with sheet close button */}
+      <div className="p-3 pt-4 md:pt-3">
         <OrgSwitcher />
       </div>
 
@@ -100,12 +109,12 @@ function SidebarContent({ pathname, onLogout }: { pathname: string; onLogout: ()
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-3">
-        <SidebarNav pathname={pathname} />
+        <SidebarNav pathname={pathname} onNavigate={onNavigate} />
       </div>
 
       <Separator />
 
-      {/* User info + logout */}
+      {/* User info + logout + theme toggle */}
       <div className="p-3">
         {loading ? (
           <div className="flex items-center gap-2">
@@ -146,6 +155,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [sheetOpen, setSheetOpen] = React.useState(false);
+
+  // Close mobile sheet on navigation
+  useEffect(() => {
+    setSheetOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -184,26 +199,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Mobile header + sheet */}
-      <div className="flex flex-1 flex-col min-h-0">
-        <header className="flex h-12 items-center gap-3 border-b bg-card px-4 md:hidden">
-          <Sheet>
+      <div className="flex flex-1 flex-col min-h-0 min-w-0">
+        <header className="flex h-12 shrink-0 items-center gap-3 border-b bg-card px-4 md:hidden">
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger
               render={<Button variant="ghost" size="icon-sm" aria-label="Open menu" />}
             >
               <MenuIcon className="size-4" />
             </SheetTrigger>
-            <SheetContent side="left" className="w-60 p-0">
+            <SheetContent side="left" className="w-60 p-0" showCloseButton={false}>
               <SheetHeader className="sr-only">
                 <SheetTitle>Navigation</SheetTitle>
               </SheetHeader>
-              <SidebarContent pathname={pathname} onLogout={handleLogout} />
+              <SidebarContent
+                pathname={pathname}
+                onLogout={handleLogout}
+                onNavigate={() => setSheetOpen(false)}
+              />
             </SheetContent>
           </Sheet>
           <span className="text-sm font-semibold">Team Notes</span>
         </header>
 
         {/* Page content — scrollable independently from sidebar */}
-        <main className="flex-1 overflow-y-auto min-h-0">
+        <main className="flex-1 overflow-auto min-h-0">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
