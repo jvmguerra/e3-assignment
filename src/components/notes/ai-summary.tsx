@@ -248,8 +248,13 @@ export function AISummary({ noteId, noteTitle }: AISummaryProps) {
         headers,
         body: JSON.stringify({ summary_id: summaryId, action }),
       });
-      toast.success(action === "accept" ? "Summary accepted" : "Summary rejected");
+      toast.success(action === "accept" ? "Summary accepted — tags updated" : "Summary rejected");
       queryClient.invalidateQueries({ queryKey: ["ai-summary", noteId] });
+      if (action === "accept") {
+        // Tags may have been updated on the note — refresh note data too
+        queryClient.invalidateQueries({ queryKey: ["note"] });
+        queryClient.invalidateQueries({ queryKey: ["notes"] });
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to ${action} summary`);
     } finally {

@@ -112,7 +112,9 @@ export default function SearchPage() {
     setIsLoading(true);
 
     const url = `/api/notes/search?q=${encodeURIComponent(debouncedQuery)}&page=${page}&limit=${LIMIT}`;
-    fetch(url, { headers })
+    const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
+    if (activeOrgId) fetchHeaders["x-org-id"] = activeOrgId;
+    fetch(url, { headers: fetchHeaders })
       .then(async (res) => {
         if (!res.ok) {
           const err = await res.json().catch(() => ({ error: "Search failed" }));
@@ -135,7 +137,7 @@ export default function SearchPage() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, page, activeOrgId, headers]);
+  }, [debouncedQuery, page, activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalPages = results ? Math.ceil(results.total / LIMIT) : 0;
   const hasResults = results && results.results.length > 0;
