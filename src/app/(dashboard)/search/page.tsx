@@ -76,7 +76,7 @@ interface SearchResult extends Note {
 }
 
 interface SearchResponse {
-  notes: SearchResult[];
+  results: SearchResult[];
   total: number;
   page: number;
   limit: number;
@@ -138,8 +138,8 @@ export default function SearchPage() {
   }, [debouncedQuery, page, activeOrgId, headers]);
 
   const totalPages = results ? Math.ceil(results.total / LIMIT) : 0;
-  const hasResults = results && results.notes.length > 0;
-  const showEmpty = !isLoading && debouncedQuery.trim() && results && results.notes.length === 0;
+  const hasResults = results && results.results.length > 0;
+  const showEmpty = !isLoading && debouncedQuery.trim() && results && results.results.length === 0;
   const showPlaceholder = !debouncedQuery.trim();
 
   return (
@@ -184,7 +184,7 @@ export default function SearchPage() {
       {/* Results */}
       {!isLoading && hasResults && (
         <div className="flex flex-col gap-3">
-          {results.notes.map((note) => {
+          {results.results.map((note) => {
             const snippet = note.content
               ? note.content.slice(0, 150) + (note.content.length > 150 ? "…" : "")
               : null;

@@ -143,7 +143,7 @@ export function FileAttachments({ noteId }: FileAttachmentsProps) {
     setDownloadingId(file.id);
     try {
       const data = await apiFetch(`/api/files/${file.id}`, { headers });
-      const url = data.url ?? data.signed_url;
+      const url = data.download_url;
       if (!url) throw new Error("No download URL returned");
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (err) {

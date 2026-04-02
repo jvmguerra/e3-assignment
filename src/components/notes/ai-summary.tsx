@@ -208,7 +208,7 @@ export function AISummary({ noteId, noteTitle }: AISummaryProps) {
     enabled: !!activeOrgId && !!noteId,
   });
 
-  const summaries: AISummary[] = data?.summaries ?? data?.summary ? [data.summary] : [];
+  const summaries: AISummary[] = data?.summaries ?? (data?.summary ? [data.summary] : []);
   // Sort: most recent first
   const sorted = [...summaries].sort(
     (a, b) => new Date(b.generated_at).getTime() - new Date(a.generated_at).getTime()

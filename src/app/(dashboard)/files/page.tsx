@@ -37,6 +37,31 @@ function formatFileSize(bytes: number): string {
   return (bytes / 1048576).toFixed(1) + " MB";
 }
 
+function formatMimeType(mime: string): string {
+  const map: Record<string, string> = {
+    "application/pdf": "PDF",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "Word",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "Excel",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": "PowerPoint",
+    "application/msword": "Word",
+    "application/vnd.ms-excel": "Excel",
+    "application/vnd.ms-powerpoint": "PowerPoint",
+    "application/zip": "ZIP",
+    "application/json": "JSON",
+    "text/plain": "Text",
+    "text/csv": "CSV",
+    "text/html": "HTML",
+    "text/markdown": "Markdown",
+  };
+  if (map[mime]) return map[mime];
+  if (mime.startsWith("image/")) return mime.replace("image/", "").toUpperCase();
+  if (mime.startsWith("video/")) return mime.replace("video/", "").toUpperCase();
+  if (mime.startsWith("audio/")) return mime.replace("audio/", "").toUpperCase();
+  // Fallback: show last part after /
+  const parts = mime.split("/");
+  return parts[parts.length - 1].slice(0, 12);
+}
+
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString(undefined, {
     year: "numeric",
@@ -183,7 +208,7 @@ export default function FilesPage() {
     setDownloadingId(file.id);
     try {
       const data = await apiFetch(`/api/files/${file.id}`, { headers });
-      const url = data.url ?? data.signed_url;
+      const url = data.download_url;
       if (!url) throw new Error("No download URL returned");
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (err) {
@@ -285,7 +310,7 @@ export default function FilesPage() {
                       {formatFileSize(file.file_size)}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs">
-                      {file.mime_type}
+                      {formatMimeType(file.mime_type)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {uploader}
