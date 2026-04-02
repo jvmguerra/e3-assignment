@@ -20,13 +20,14 @@ function preprocess(
 ): string {
   let processed = content;
 
-  // [image:fileId] → standard markdown image
+  // [image:filename.ext] → standard markdown image
+  // Matches any filename including spaces, dots, parentheses, etc.
   processed = processed.replace(
-    /\[image:([a-f0-9-]+)\]/g,
-    (_match, fileId: string) => {
-      const url = attachedImages[fileId];
-      if (url) return `![Attached image](${url})`;
-      return `*[Image not found]*`;
+    /\[image:([^\]]+)\]/g,
+    (_match, fileName: string) => {
+      const url = attachedImages[fileName];
+      if (url) return `![${fileName}](${url})`;
+      return `*[Image: ${fileName} — not found]*`;
     }
   );
 

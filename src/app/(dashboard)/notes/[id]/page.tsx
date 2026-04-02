@@ -172,30 +172,49 @@ export default function NoteDetailPage() {
 
   const note: Note | undefined = data?.note;
 
-  // Load signed URLs for [image:fileId] references in note content
+  // Load signed URLs for [image:filename] references in note content.
+  // Resolves file names against the note's attached files.
   const [attachedImageUrls, setAttachedImageUrls] = React.useState<Record<string, string>>({});
-  const imageRefs = React.useMemo(() => {
+
+  // Get image file names referenced in the content
+  const imageFileNames = React.useMemo(() => {
     if (!note?.content) return [];
-    const matches = [...note.content.matchAll(/\[image:([a-f0-9-]+)\]/g)];
+    const matches = [...note.content.matchAll(/\[image:([^\]]+)\]/g)];
     return matches.map((m) => m[1]);
   }, [note?.content]);
 
+  // Fetch the note's files and build a name→URL map
+  const { data: filesData } = useQuery({
+    queryKey: ["files", noteId, activeOrgId],
+    queryFn: () => apiFetch(`/api/files?note_id=${noteId}`, { headers }),
+    enabled: !!activeOrgId && !!noteId && imageFileNames.length > 0,
+  });
+
   React.useEffect(() => {
-    if (!imageRefs.length || !activeOrgId) return;
-    async function loadImageUrls() {
+    const files = filesData?.files ?? [];
+    if (!files.length || !imageFileNames.length || !activeOrgId) return;
+
+    // Match referenced file names to actual file records
+    const matchedFiles = files.filter(
+      (f: { file_name: string; mime_type: string }) =>
+        imageFileNames.includes(f.file_name) && f.mime_type.startsWith("image/")
+    );
+    if (!matchedFiles.length) return;
+
+    async function loadUrls() {
       const urls: Record<string, string> = {};
-      for (const fileId of imageRefs) {
+      for (const file of matchedFiles) {
         try {
-          const data = await apiFetch(`/api/files/${fileId}`, {
+          const data = await apiFetch(`/api/files/${file.id}`, {
             headers: { "x-org-id": activeOrgId! },
           });
-          if (data.download_url) urls[fileId] = data.download_url;
+          if (data.download_url) urls[file.file_name] = data.download_url;
         } catch { /* ignore */ }
       }
       setAttachedImageUrls(urls);
     }
-    loadImageUrls();
-  }, [imageRefs.join(","), activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadUrls();
+  }, [filesData, imageFileNames.join(","), activeOrgId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startEditing() {
     if (!note) return;
@@ -433,7 +452,7 @@ export default function NoteDetailPage() {
                 placeholder="Write your note content here..."
               />
               <p className="text-xs text-muted-foreground">
-                Supports **Markdown**: *italic*, **bold**, `code`, ```code blocks```, {">"} blockquotes, - lists, | tables |, [links](url), [warn]warnings[/warn], [image:file-id]
+                Supports **Markdown**: *italic*, **bold**, `code`, ```code blocks```, {">"} blockquotes, - lists, | tables |, [links](url), [warn]warnings[/warn], [image:filename.png]
               </p>
             </div>
           ) : (
