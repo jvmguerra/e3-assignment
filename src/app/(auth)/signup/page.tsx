@@ -26,7 +26,7 @@ export default function SignupPage() {
         body: JSON.stringify({ display_name: displayName, email, password }),
       });
       toast.success("Account created! Redirecting…");
-      router.push("/notes");
+      router.push("/dashboard");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign up failed");
     } finally {

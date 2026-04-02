@@ -3,23 +3,23 @@
 ## Agents Used
 
 - **Claude Code (Opus 4.6)** — Primary coding agent for all code generation, architecture decisions, debugging, and documentation
-- **Parallel subagents** — Specialized agent types used for concurrent work:
+- **Parallel subagents** (Sonnet 4.6) — Specialized agent types used for concurrent work:
   - `backend-api-architect` — Database migrations, RLS policies, API route handlers, seed scripts
   - `staff-frontend-engineer` — React components, pages, shadcn/ui integration, UX
   - `general-purpose` — Documentation, code exploration, cross-cutting fixes
 
 ## Work Split
 
-| Phase | Agents | Duration | What ran in parallel |
+| Phase | Agents | Duration (with testing + debugging) | What ran in parallel |
 |-------|--------|----------|---------------------|
-| 0 — Setup | 1 main + 3 subagents | ~45 min | Types/clients, logger/API utils, folder skeleton |
-| 1 — DB + Auth | 2 parallel | ~3 hrs | Backend (migrations, RLS, triggers, auth API) ‖ Frontend (auth pages, layout, org switcher) |
-| 2 — Notes CRUD | 2 parallel | ~3.5 hrs | Backend (CRUD routes, versioning, sharing) ‖ Frontend (list, editor, tags, diff viewer) |
-| 3 — Search/Files/AI | 3 parallel | ~3.5 hrs | Search+AI backend ‖ File upload backend ‖ All frontend UI |
-| 4 — Logging + Polish | 2 parallel | ~2.5 hrs | Audit all handlers + logs API ‖ Audit log viewer + error boundaries |
-| 5 — Seed + Deploy | 2 parallel | ~3 hrs | Seed script (10k notes) ‖ Dockerfile + Railway config |
+| 0 — Setup | 1 main + 3 subagents | ~30 min | Types/clients, logger/API utils, folder skeleton |
+| 1 — DB + Auth | 2 parallel | ~1 hrs | Backend (migrations, RLS, triggers, auth API) ‖ Frontend (auth pages, layout, org switcher) |
+| 2 — Notes CRUD | 2 parallel | ~2 hrs | Backend (CRUD routes, versioning, sharing) ‖ Frontend (list, editor, tags, diff viewer) |
+| 3 — Search/Files/AI | 3 parallel | ~2.5 hrs | Search+AI backend ‖ File upload backend ‖ All frontend UI |
+| 4 — Logging + Polish | 2 parallel | ~1 hrs | Audit all handlers + logs API ‖ Audit log viewer + error boundaries |
+| 5 — Seed + Deploy | 2 parallel | ~2 hrs | Seed script (10k notes) ‖ Dockerfile + Railway config |
 | 6 — Docs | 1 agent | ~1 hr | README, ARCHITECTURE.md, NOTES.md finalization |
-| Improvements | 3 parallel | ~2 hrs | Testing+CI ‖ UI fixes (dark mode, fonts, layout, stale org) ‖ Railway devex |
+| Improvements | 3 parallel | ~1 hrs | Testing+CI ‖ UI fixes (dark mode, fonts, layout, stale org) ‖ Railway devex |
 | Dashboard | 2 parallel | ~1.5 hrs | Stats/insight API ‖ Charts + page + components |
 
 ## Parallel Execution

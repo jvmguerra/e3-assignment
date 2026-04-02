@@ -47,10 +47,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If logged in and on login/signup, redirect to the notes dashboard
+  // If logged in and on login/signup, redirect to the dashboard
   if (user && (pathname.startsWith('/login') || pathname.startsWith('/signup'))) {
     const url = request.nextUrl.clone();
-    url.pathname = '/notes';
+    url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }
 

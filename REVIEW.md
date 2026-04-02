@@ -15,7 +15,7 @@ Every route handler was reviewed for:
 
 - **`withAuth` wrapper present** — Confirms authentication + org membership + permission logging on every request
 - **Correct Supabase client** — `server.ts` (user JWT, RLS applies) for all route handlers. `admin.ts` (service role) ONLY in scripts, seed, org creation (chicken-and-egg), and storage operations. I verified no route handler accidentally uses the admin client for queries that should be RLS-protected.
-- **Audit logging on every mutation** — 20+ distinct action types logged. Verified with grep that every POST/PATCH/DELETE handler calls `auditLog()`.
+- **Audit logging on every mutation** — 20+ distinct action types logged. Verified that every POST/PATCH/DELETE handler calls `auditLog()`.
 - **Permission checks beyond RLS** — Role-based guards (e.g., only owner can change roles, only admin/owner can delete files they didn't upload, only admin/owner can view audit logs) are enforced in application code as defense-in-depth.
 
 ### Auth Middleware — `src/middleware.ts`
