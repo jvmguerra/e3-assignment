@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as React from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
@@ -12,7 +13,10 @@ import {
   ScrollIcon,
   MenuIcon,
   LogOutIcon,
+  SunIcon,
+  MoonIcon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -31,6 +35,26 @@ const navItems = [
   { href: "/admin/members", label: "Members", icon: UsersIcon },
   { href: "/admin/audit-log", label: "Audit Log", icon: ScrollIcon },
 ];
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => setMounted(true), []);
+
+  if (!mounted) return <Skeleton className="size-7 rounded-lg" />;
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {theme === "dark" ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
+    </Button>
+  );
+}
 
 function SidebarNav({ pathname }: { pathname: string }) {
   return (
@@ -99,6 +123,7 @@ function SidebarContent({ pathname, onLogout }: { pathname: string; onLogout: ()
                 {user?.email ?? "Unknown"}
               </span>
             </div>
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="icon-sm"

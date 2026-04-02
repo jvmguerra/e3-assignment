@@ -41,12 +41,14 @@ export function OrgSwitcher() {
   const orgs = data?.orgs ?? [];
   const activeOrg = orgs.find((o) => o.id === activeOrgId) ?? orgs[0] ?? null;
 
-  // Auto-select first org if none selected
+  // Auto-select first org if none selected or if stored org is no longer valid
   useEffect(() => {
-    if (!activeOrgId && activeOrg) {
+    if (!orgs.length) return;
+    const isValidOrg = activeOrgId && orgs.some((o) => o.id === activeOrgId);
+    if (!isValidOrg && activeOrg) {
       setActiveOrgId(activeOrg.id);
     }
-  }, [activeOrgId, activeOrg, setActiveOrgId]);
+  }, [activeOrgId, activeOrg, orgs, setActiveOrgId]);
 
   function handleSwitch(org: Organization) {
     setActiveOrgId(org.id);

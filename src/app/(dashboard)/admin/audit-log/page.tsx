@@ -288,7 +288,7 @@ export default function AuditLogPage() {
   // Show loading skeleton while checking membership
   if (membersLoading) {
     return (
-      <div className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-6 w-72" />
         <div className="rounded-xl border overflow-hidden">

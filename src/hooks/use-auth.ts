@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useOrgStore } from "@/stores/org-store";
 import type { User } from "@supabase/supabase-js";
 
 export function useAuth() {
@@ -21,6 +22,10 @@ export function useAuth() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
+      // Clear org store when user signs out
+      if (!session?.user) {
+        useOrgStore.getState().setActiveOrgId(null);
+      }
     });
 
     return () => subscription.unsubscribe();

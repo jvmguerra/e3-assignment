@@ -145,7 +145,7 @@ export default function SearchPage() {
   const showPlaceholder = !debouncedQuery.trim();
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-3xl mx-auto">
+    <div className="flex flex-col gap-6 p-6 max-w-4xl mx-auto">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">Search</h1>
         <p className="text-sm text-muted-foreground">Search notes by title, content, or tags.</p>
