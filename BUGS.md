@@ -17,3 +17,10 @@ Bugs discovered during code review, with commit references showing the fix.
 - **Impact:** Org switcher dropdown crashed on render, preventing org switching.
 - **Fixed in:** commit 898c140
 - **How:** Wrapped `DropdownMenuLabel` inside `DropdownMenuGroup` in the org-switcher. Also fixed Trigger components to use Base UI's `render` prop pattern instead of nested children.
+
+## Bug 3: Org creation fails — SELECT policy blocks .select() before membership exists
+- **Found in:** commit 853e46a
+- **Description:** The org creation route does `.insert({ name, slug }).select().single()` using the user's Supabase client. The INSERT succeeds (policy: `WITH CHECK true`), but the chained `.select()` triggers the organizations SELECT policy which requires `id IN (get_user_org_ids(auth.uid()))`. Since the membership hasn't been created yet, the SELECT returns nothing and `.single()` fails with RLS violation 42501.
+- **Impact:** Users could not create organizations at all.
+- **Fixed in:** commit 532bfeb
+- **How:** Used the admin client (service role, bypasses RLS) for the initial org + membership creation. All subsequent operations use the user's client with RLS.
