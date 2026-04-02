@@ -15,6 +15,7 @@ A full-stack multi-tenant team notes application built with Next.js 16, Supabase
 - **Markdown Rendering** — Notes render with full Markdown support (bold, italic, code, tables, blockquotes, GFM) plus custom extensions for warning blocks and inline image references
 - **Dark Mode** — System-aware dark mode with manual toggle in the sidebar
 - **Numeric Pagination** — Page numbers with jump-to-page across all paginated views
+- **Dashboard** — Real-time org overview with stat cards, TradingView lightweight-charts (area + histogram), top tags, top contributors, and AI-generated insights
 
 ## Tech Stack
 

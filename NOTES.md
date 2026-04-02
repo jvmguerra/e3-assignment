@@ -81,3 +81,10 @@ A running scratchpad of plans, actions, decisions, and reasoning throughout the 
 - Collapsible tag filter: top 4 visible, expand, search
 - Railway: .dockerignore, enhanced health check, Docker scripts
 **Issues:** rehype-raw caused silent render failures (removed), Husky hooks needed nvm sourcing for Node 22.
+
+## 2026-04-02 03:30 — Dashboard with Charts and AI Insights
+
+**Plan:** Two parallel agents — backend (stats aggregation + AI insight APIs) and frontend (dashboard page with lightweight-charts, stat cards, top tags/contributors, AI insight).
+**Reasoning:** A dashboard provides quick org-level visibility and demonstrates data visualization with TradingView's lightweight-charts library. The AI insight shows a practical use of the OpenRouter integration beyond note summaries.
+**Result:** Dashboard page with 4 stat cards (notes, members, files, AI summaries), area chart (notes created over 30 days), histogram (activity over 30 days), top 5 tags, top 5 contributors, and AI-generated insight paragraph with 5-minute server cache. Charts respect dark mode. Dashboard is now the default landing page.
+**Issues:** None.

@@ -18,12 +18,17 @@ e3/
 │   │   │   ├── admin/
 │   │   │   │   ├── audit-log/       # Audit log viewer (admin/owner only)
 │   │   │   │   └── members/         # Member management page
+│   │   │   ├── dashboard/           # Dashboard page (stat cards, charts, insights)
 │   │   │   ├── files/               # Org file browser with upload/download
 │   │   │   ├── notes/               # Notes list (card grid)
 │   │   │   │   └── [id]/            # Note detail/editor
 │   │   │   │       └── versions/    # Version history + diff viewer
 │   │   │   └── search/              # Full-text search page
 │   │   ├── api/                     # Route handlers (see API Reference below)
+│   │   │   ├── dashboard/
+│   │   │   │   ├── route.ts         # Stats aggregation API
+│   │   │   │   └── insight/
+│   │   │   │       └── route.ts     # AI insight API
 │   │   ├── layout.tsx               # Root layout (html/body, fonts)
 │   │   └── page.tsx                 # Landing → redirects to /notes
 │   ├── components/
@@ -41,6 +46,7 @@ e3/
 │   │   ├── orgs/
 │   │   │   ├── create-org-dialog.tsx
 │   │   │   └── org-switcher.tsx     # Org selector dropdown
+│   │   ├── dashboard/               # stat-card, area-chart, histogram-chart, ai-insight
 │   │   └── ui/                      # 22 shadcn/ui (Base UI) primitives
 │   ├── hooks/
 │   │   ├── use-api.ts               # TanStack Query hooks for all endpoints
@@ -282,6 +288,13 @@ Org-scoped endpoints read the active org from the `x-org-id` header.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/audit-logs` | Yes (admin/owner) | List audit logs (filterable) |
+
+### Dashboard
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/dashboard` | Yes | Aggregated org stats (notes count, members, files, AI summaries, 30-day activity by day, top tags, top contributors) |
+| GET | `/api/dashboard/insight` | Yes | AI-generated insight paragraph via OpenRouter. 5-minute server-side cache |
 
 ---
 
