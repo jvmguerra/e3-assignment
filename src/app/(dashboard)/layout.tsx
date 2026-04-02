@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import {
+  LayoutDashboardIcon,
   FileTextIcon,
   PaperclipIcon,
   SearchIcon,
@@ -29,6 +30,7 @@ import { useOrgStore } from "@/stores/org-store";
 import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
   { href: "/notes", label: "Notes", icon: FileTextIcon },
   { href: "/files", label: "Files", icon: PaperclipIcon },
   { href: "/search", label: "Search", icon: SearchIcon },
