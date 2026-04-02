@@ -49,4 +49,11 @@ A running scratchpad of plans, actions, decisions, and reasoning throughout the 
 **Plan:** Two parallel agents — Agent A: Audit all route handlers for logging, add audit logs API. Agent B: Audit log viewer UI, error boundary, loading/empty states, responsive polish.
 **Reasoning:** All features exist — now need operational visibility and production-ready UX.
 **Result:** Audited all 22+ route handlers — confirmed logging on every mutation, auth event, AI request, and permission denial. Added structured console.error for Railway. Built audit logs API (filterable by action, user, date range, admin/owner only). Built full audit log viewer with color-coded action badges, filters, pagination. Added React ErrorBoundary wrapping dashboard content. Normalized audit action names to canonical format.
-**Issues:** None.
+**Issues:** Fixed: hooks order violation (early return before useMemo), audit log flash for members, role select not disabled for non-owners, same-day date filter timezone issue.
+
+## 2026-04-02 02:00 — Phase 5: Seed Data + Deployment
+
+**Plan:** Two parallel agents — Agent A: Seed script (10k notes, 10 users, 4 orgs, files, AI summaries). Agent B: Dockerfile, docker-compose, railway.toml, image previews for files.
+**Reasoning:** Seed and deployment are independent. Image previews requested by user.
+**Result:** Seed script generates 10k notes across 4 orgs with overlapping tags/titles, 10 users with cross-org memberships, ~15k note versions, note shares, 20-30 files, 50-100 AI summaries. Dockerfile multi-stage build for ~150MB image. Railway config with health check. Image preview thumbnails in file list and attachments.
+**Issues:** Pending seed run and Railway deployment.
