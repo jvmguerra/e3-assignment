@@ -94,7 +94,7 @@ export function CreateNoteDialog({ children }: CreateNoteDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<span className="contents" />}>
+      <DialogTrigger render={<button type="button" className="contents" />}>
         {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">

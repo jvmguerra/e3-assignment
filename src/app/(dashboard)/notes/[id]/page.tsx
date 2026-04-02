@@ -15,7 +15,7 @@ import {
   XIcon,
   SaveIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -239,10 +239,10 @@ export default function NoteDetailPage() {
           Failed to load note:{" "}
           {error instanceof Error ? error.message : "Unknown error"}
         </p>
-        <Button variant="outline" render={<Link href="/notes" />}>
+        <Link href="/notes" className={buttonVariants({ variant: "outline" })}>
           <ArrowLeftIcon />
           Back to Notes
-        </Button>
+        </Link>
       </div>
     );
   }
@@ -251,10 +251,10 @@ export default function NoteDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <p className="text-muted-foreground">Note not found.</p>
-        <Button variant="outline" render={<Link href="/notes" />}>
+        <Link href="/notes" className={buttonVariants({ variant: "outline" })}>
           <ArrowLeftIcon />
           Back to Notes
-        </Button>
+        </Link>
       </div>
     );
   }
@@ -263,10 +263,10 @@ export default function NoteDetailPage() {
     <div className="flex flex-col gap-0 max-w-4xl mx-auto p-6">
       {/* Back link */}
       <div className="mb-4">
-        <Button variant="ghost" size="sm" render={<Link href="/notes" />}>
+        <Link href="/notes" className={buttonVariants({ variant: "ghost", size: "sm" })}>
           <ArrowLeftIcon />
           Back to Notes
-        </Button>
+        </Link>
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
@@ -421,10 +421,10 @@ export default function NoteDetailPage() {
 
           {/* Version history link */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" render={<Link href={`/notes/${note.id}/versions`} />}>
+            <Link href={`/notes/${note.id}/versions`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
               <HistoryIcon className="size-4" />
               Version History
-            </Button>
+            </Link>
           </div>
 
           {/* AI Summary placeholder */}

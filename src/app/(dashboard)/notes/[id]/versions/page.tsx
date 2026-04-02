@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, GitCompareArrowsIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -103,10 +103,10 @@ export default function VersionsPage() {
     <div className="flex flex-col gap-6 p-6 max-w-4xl mx-auto">
       {/* Back link */}
       <div>
-        <Button variant="ghost" size="sm" render={<Link href={`/notes/${noteId}`} />}>
+        <Link href={`/notes/${noteId}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
           <ArrowLeftIcon />
           Back to Note
-        </Button>
+        </Link>
       </div>
 
       <div className="flex items-center justify-between gap-4">

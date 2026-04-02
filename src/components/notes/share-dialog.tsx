@@ -121,7 +121,7 @@ export function ShareDialog({ noteId, children }: ShareDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<span className="contents" />}>
+      <DialogTrigger render={<button type="button" className="contents" />}>
         {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
