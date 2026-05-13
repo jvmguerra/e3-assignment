@@ -27,14 +27,48 @@ const currencySchema = z.preprocess(
   z.string().length(3)
 );
 
-export const ExtractedTransactionSchema = z.object({
-  occurred_on: z.string(),
-  description: z.string(),
-  amount: amountSchema,
-  currency: currencySchema,
-  kind: z.enum(['income', 'expense', 'transfer_out', 'transfer_in', 'transfer_fee']),
-  category: z.string(),
-});
+const VALID_KINDS = ['income', 'expense', 'transfer_out', 'transfer_in', 'transfer_fee'] as const;
+type Kind = (typeof VALID_KINDS)[number];
+
+function normalizeKind(rawKind: unknown, amount: number, description: string): Kind {
+  if (typeof rawKind === 'string') {
+    const k = rawKind.trim().toLowerCase().replace(/[\s-]+/g, '_');
+    if ((VALID_KINDS as readonly string[]).includes(k)) return k as Kind;
+    // Synonyms
+    if (k === 'transferout' || k === 'transfer_sent' || k === 'outgoing_transfer') return 'transfer_out';
+    if (k === 'transferin' || k === 'transfer_received' || k === 'incoming_transfer') return 'transfer_in';
+    if (k === 'fee' || k === 'charge' || k === 'tax' || k === 'iof' || k === 'tarifa') return 'transfer_fee';
+    if (k === 'salary' || k === 'deposit' || k === 'credit' || k === 'refund' || k === 'income') return 'income';
+    if (k === 'purchase' || k === 'debit' || k === 'payment' || k === 'expense') return 'expense';
+    if (k === 'transfer') {
+      // Bare "transfer" — use amount sign to pick a leg
+      return amount >= 0 ? 'transfer_in' : 'transfer_out';
+    }
+  }
+  // Last-resort fallback by sign + description keywords
+  const desc = description.toLowerCase();
+  const looksLikeFee = /\b(fee|charge|iof|tarifa|tax)\b/.test(desc);
+  if (looksLikeFee) return 'transfer_fee';
+  return amount >= 0 ? 'income' : 'expense';
+}
+
+export const ExtractedTransactionSchema = z
+  .object({
+    occurred_on: z.string(),
+    description: z.string().default(''),
+    amount: amountSchema,
+    currency: currencySchema,
+    kind: z.unknown(),
+    category: z.string().default('other'),
+  })
+  .transform((t) => ({
+    occurred_on: t.occurred_on,
+    description: t.description,
+    amount: t.amount,
+    currency: t.currency,
+    kind: normalizeKind(t.kind, t.amount, t.description),
+    category: t.category,
+  }));
 
 // Accept both `{ transactions: [...] }` and a bare `[...]` array — some models
 // slip and emit the array directly despite the prompt asking for the wrapped form.
