@@ -9,9 +9,14 @@ export interface ExtractedText {
 }
 
 export async function extractPdfText(buffer: Buffer): Promise<ExtractedText> {
-  // Lazy import — pdf-parse pulls in fs hooks at module load that complain in Next.
-  const mod = await import('pdf-parse');
-  const pdfParse = (mod as unknown as { default: (b: Buffer) => Promise<{ text: string; numpages: number }> }).default;
+  // Import the inner module directly. pdf-parse's index.js runs a debug
+  // self-test on load that opens './test/data/05-versions-space.pdf' and
+  // throws ENOENT in production where that fixture doesn't exist.
+  // @ts-expect-error pdf-parse ships no types for the inner module
+  const mod = await import('pdf-parse/lib/pdf-parse.js');
+  const pdfParse = (mod as unknown as {
+    default: (b: Buffer) => Promise<{ text: string; numpages: number }>;
+  }).default;
   const result = await pdfParse(buffer);
   return { text: result.text, pageCount: result.numpages };
 }
