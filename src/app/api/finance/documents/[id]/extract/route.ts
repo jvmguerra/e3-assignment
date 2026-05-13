@@ -105,7 +105,7 @@ export const POST = withAuth(async (_request: NextRequest, { user, orgId, supaba
       const result = await callOpenRouter(ExtractionSchema, {
         system: EXTRACTION_SYSTEM,
         user: buildExtractionUserPrompt(chunk, doc.account_label, knownLabels),
-        maxTokens: 3000,
+        maxTokens: 8000,
       });
       all.push(...result.transactions);
     } catch (err) {

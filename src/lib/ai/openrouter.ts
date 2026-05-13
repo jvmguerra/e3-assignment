@@ -4,12 +4,32 @@ import { z, ZodType } from 'zod/v4';
 // Generic OpenRouter caller
 // ============================================================
 
+interface OpenRouterChoice {
+  message?: {
+    content?: string | Array<{ type?: string; text?: string }> | null;
+    refusal?: string | null;
+  };
+  finish_reason?: string;
+  native_finish_reason?: string;
+}
+
 interface OpenRouterResponse {
-  choices: Array<{
-    message: {
-      content: string;
-    };
-  }>;
+  choices?: OpenRouterChoice[];
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
+  error?: { message?: string; code?: number };
+}
+
+function extractContent(choice: OpenRouterChoice | undefined): string {
+  const raw = choice?.message?.content;
+  if (typeof raw === 'string') return raw;
+  if (Array.isArray(raw)) {
+    return raw.map((p) => (typeof p?.text === 'string' ? p.text : '')).join('');
+  }
+  return '';
 }
 
 export interface CallOpenRouterOptions {
@@ -63,10 +83,21 @@ export async function callOpenRouter<T>(
   }
 
   const data: OpenRouterResponse = await response.json();
-  const content = data.choices?.[0]?.message?.content;
+  const choice = data.choices?.[0];
+  const content = extractContent(choice);
 
   if (!content) {
-    throw new Error('No content in OpenRouter response');
+    const finishReason = choice?.finish_reason ?? choice?.native_finish_reason ?? 'unknown';
+    const refusal = choice?.message?.refusal ?? null;
+    const completionTokens = data.usage?.completion_tokens ?? 'n/a';
+    const detail = JSON.stringify({
+      finish_reason: finishReason,
+      refusal,
+      completion_tokens: completionTokens,
+      error: data.error,
+    });
+    console.error('OpenRouter empty content:', detail, 'full response:', JSON.stringify(data));
+    throw new Error(`OpenRouter returned empty content (${detail})`);
   }
 
   const cleaned = stripJsonFences(content);
