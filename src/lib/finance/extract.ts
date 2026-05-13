@@ -51,7 +51,7 @@ export async function extractDocumentText(
   return { text: buffer.toString('utf-8'), pageCount: null };
 }
 
-const MAX_CHUNK_CHARS = 16000;
+const MAX_CHUNK_CHARS = 6000;
 
 export function chunkText(text: string): string[] {
   if (text.length <= MAX_CHUNK_CHARS) return [text];
