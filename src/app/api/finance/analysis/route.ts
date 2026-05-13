@@ -108,18 +108,18 @@ export const POST = withAuth(async (request: NextRequest, { user, orgId, supabas
         aggregates,
         prevAggregates,
       }),
-      maxTokens: 2000,
+      maxTokens: 6000,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Analysis failed';
-    console.error(msg);
+    console.error('analysis call failed:', msg);
     await auditLog(supabase, {
       org_id: orgId,
       user_id: user.id,
       action: 'finance.analysis.failed',
       metadata: { error: msg, month, kind, presetKey: resolvedKey },
     });
-    return apiError('AI analysis failed', 502);
+    return apiError(`AI analysis failed: ${msg}`, 502);
   }
 
   const { data: inserted, error: insertError } = await supabase

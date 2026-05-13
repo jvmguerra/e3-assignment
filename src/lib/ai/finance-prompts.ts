@@ -158,23 +158,55 @@ Identify recurring (monthly/weekly/yearly) charges. Skip one-offs.`;
 // Analysis (preset + freeform)
 // ============================================================
 
+const severitySchema = z.preprocess((v) => {
+  if (typeof v !== 'string') return v;
+  const s = v.trim().toLowerCase();
+  if (s === 'warning' || s === 'warn') return 'warn';
+  if (s === 'critical' || s === 'high' || s === 'severe' || s === 'error') return 'critical';
+  if (s === 'info' || s === 'low' || s === 'note' || s === 'medium') return 'info';
+  return s;
+}, z.enum(['info', 'warn', 'critical']));
+
+const nullableCurrencySchema = z.preprocess((v) => {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'string') {
+    const s = v.trim().toUpperCase();
+    return s.length === 3 ? s : null;
+  }
+  return v;
+}, z.string().length(3).nullable());
+
+const nullableNumberSchema = z.preprocess((v) => {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    const n = Number(v.replace(/[^\d.\-+]/g, ''));
+    return isFinite(n) ? n : null;
+  }
+  return v;
+}, z.number().nullable());
+
 export const FinanceAnalysisSchema = z.object({
-  overview: z.string(),
-  findings: z.array(
-    z.object({
-      title: z.string(),
-      detail: z.string(),
-      severity: z.enum(['info', 'warn', 'critical']),
-    })
-  ),
-  suggestions: z.array(
-    z.object({
-      action: z.string(),
-      estimated_savings: z.number().nullable(),
-      currency: z.string().length(3).nullable(),
-    })
-  ),
-  cited_transaction_ids: z.array(z.string()),
+  overview: z.string().default(''),
+  findings: z
+    .array(
+      z.object({
+        title: z.string().default(''),
+        detail: z.string().default(''),
+        severity: severitySchema.default('info'),
+      })
+    )
+    .default([]),
+  suggestions: z
+    .array(
+      z.object({
+        action: z.string().default(''),
+        estimated_savings: nullableNumberSchema.default(null),
+        currency: nullableCurrencySchema.default(null),
+      })
+    )
+    .default([]),
+  cited_transaction_ids: z.array(z.string()).default([]),
 });
 
 export const ANALYSIS_SYSTEM = `You are a personal finance analyst. Analyze the provided transactions and aggregates and produce a structured JSON report.
