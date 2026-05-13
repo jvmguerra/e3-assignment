@@ -6,18 +6,44 @@ import type { MonthAggregates } from '@/lib/finance/aggregate';
 // Extraction
 // ============================================================
 
+const amountSchema = z.preprocess((v) => {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    // strip currency symbols, thousands separators; allow comma-decimal (e.g. "1.234,56")
+    let s = v.replace(/[^\d.,\-+]/g, '').trim();
+    if (s.includes(',') && s.lastIndexOf(',') > s.lastIndexOf('.')) {
+      s = s.replace(/\./g, '').replace(',', '.');
+    } else {
+      s = s.replace(/,/g, '');
+    }
+    const n = Number(s);
+    return isFinite(n) ? n : v;
+  }
+  return v;
+}, z.number());
+
+const currencySchema = z.preprocess(
+  (v) => (typeof v === 'string' ? v.trim().toUpperCase() : v),
+  z.string().length(3)
+);
+
 export const ExtractedTransactionSchema = z.object({
   occurred_on: z.string(),
   description: z.string(),
-  amount: z.number(),
-  currency: z.string().length(3),
+  amount: amountSchema,
+  currency: currencySchema,
   kind: z.enum(['income', 'expense', 'transfer_out', 'transfer_in', 'transfer_fee']),
   category: z.string(),
 });
 
-export const ExtractionSchema = z.object({
-  transactions: z.array(ExtractedTransactionSchema),
-});
+// Accept both `{ transactions: [...] }` and a bare `[...]` array — some models
+// slip and emit the array directly despite the prompt asking for the wrapped form.
+export const ExtractionSchema = z.preprocess(
+  (val) => (Array.isArray(val) ? { transactions: val } : val),
+  z.object({
+    transactions: z.array(ExtractedTransactionSchema),
+  })
+);
 
 export type ExtractedTransaction = z.infer<typeof ExtractedTransactionSchema>;
 

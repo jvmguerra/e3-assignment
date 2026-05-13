@@ -112,8 +112,13 @@ export async function callOpenRouter<T>(
 
   const result = schema.safeParse(parsed);
   if (!result.success) {
-    console.error('OpenRouter response validation failed:', result.error);
-    throw new Error('AI returned structurally invalid response');
+    const issues = result.error.issues
+      .slice(0, 5)
+      .map((i) => `${i.path.join('.') || '<root>'}: ${i.message}`)
+      .join(' | ');
+    const sample = JSON.stringify(parsed).slice(0, 800);
+    console.error('OpenRouter validation failed. Issues:', issues, 'Payload (first 800 chars):', sample);
+    throw new Error(`AI returned structurally invalid response: ${issues}`);
   }
 
   return result.data;
