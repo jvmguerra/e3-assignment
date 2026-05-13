@@ -15,7 +15,7 @@ import { buildChains, persistChains } from '@/lib/finance/chains';
 import type { FinanceTransaction } from '@/types/index';
 
 const BUCKET = 'finance-docs';
-const RATE_LIMIT_PER_HOUR = 5;
+const RATE_LIMIT_PER_HOUR = 30;
 
 // POST /api/finance/documents/[id]/extract — synchronously extract transactions
 export const POST = withAuth(async (_request: NextRequest, { user, orgId, supabase, params }) => {
