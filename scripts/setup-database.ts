@@ -22,6 +22,9 @@ const MIGRATION_FILES = [
   '002_create_rls_policies.sql',
   '003_create_triggers.sql',
   '004_create_indexes.sql',
+  '005_create_finance_tables.sql',
+  '006_create_finance_indexes.sql',
+  '007_create_finance_rls.sql',
 ];
 
 async function main() {

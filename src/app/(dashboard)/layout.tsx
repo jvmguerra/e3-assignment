@@ -16,6 +16,10 @@ import {
   LogOutIcon,
   SunIcon,
   MoonIcon,
+  WalletIcon,
+  CalendarIcon,
+  SparklesIcon,
+  RepeatIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -34,6 +38,10 @@ const navItems = [
   { href: "/notes", label: "Notes", icon: FileTextIcon },
   { href: "/files", label: "Files", icon: PaperclipIcon },
   { href: "/search", label: "Search", icon: SearchIcon },
+  { href: "/finance", label: "Finance", icon: WalletIcon, section: "Finance" },
+  { href: "/finance/analysis", label: "Analysis", icon: SparklesIcon, indent: true },
+  { href: "/finance/calendar", label: "Calendar", icon: CalendarIcon, indent: true },
+  { href: "/finance/patterns", label: "Patterns", icon: RepeatIcon, indent: true },
   { href: "/admin/members", label: "Members", icon: UsersIcon },
   { href: "/admin/audit-log", label: "Audit Log", icon: ScrollIcon },
 ];
@@ -61,14 +69,22 @@ function ThemeToggle() {
 function SidebarNav({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return (
     <nav className="flex flex-col gap-1 px-2">
-      {navItems.map(({ href, label, icon: Icon }) => {
-        const isActive = pathname === href || pathname.startsWith(href + "/");
+      {navItems.map((item) => {
+        const { href, label, icon: Icon } = item;
+        const indent = (item as { indent?: boolean }).indent;
+        // Top-level "Finance" is active only on /finance exactly; child paths shouldn't highlight it.
+        const isExactFinance = href === "/finance";
+        const isActive = isExactFinance
+          ? pathname === "/finance"
+          : pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
             key={href}
             href={href}
             onClick={onNavigate}
-            className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2.5 rounded-lg py-2 text-sm font-medium transition-colors ${
+              indent ? "pl-7 pr-2.5" : "px-2.5"
+            } ${
               isActive
                 ? "bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
